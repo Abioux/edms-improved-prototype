@@ -9,4 +9,4 @@ H
 cat fonts.css bootstrap.min.css style.css; echo '</style></head><body class="font-sans antialiased">
 <div class="min-h-screen bg-gray-100"><div id="app"></div>
 <footer class="proto-foot d-print-none">Prototype – not connected to EDMS · sample data only · saved in this browser only</footer></div>
-<script>'; cat data.js hsdata.js app.js; echo '</script></body></html>'; } > index.html
+<script>'; cat data.js hsdata.js admin_data.js app.js admin_core.js admin_ui1.js admin_ui2.js admin_ui3.js; echo '</script></body></html>'; } > index.html

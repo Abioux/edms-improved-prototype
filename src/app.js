@@ -1,6 +1,6 @@
 "use strict";
 /* EDMS Economic Dossier – data-entry prototype v2 (front-end only, sample data, localStorage). */
-const KEY="edms_proto_v2",MISSION="Embassy of Malaysia, Muscat",EMAIL="mwmuscat@kln.gov.my";
+const KEY="edms_proto_v2",MISSION="Embassy of Malaysia, Muscat",EMAIL="mwmuscat@sample.example";
 const $=(s,r)=>(r||document).querySelector(s),$$=(s,r)=>[...(r||document).querySelectorAll(s)];
 const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
 const IC={
@@ -54,7 +54,7 @@ function demo(){
  return{dossiers:{Oman:o,Sudan:s,Yemen:y},order:["Sudan","Yemen","Oman"]}}
 function load(){try{const s=JSON.parse(localStorage.getItem(KEY));if(s&&s.dossiers)return s}catch(e){}return demo()}
 let S=load();
-const ui={view:"dash",cur:null,area:"",tab:"sa",dirty:false,V:null,navOpen:false};
+const ui={view:"login",role:"",sview:"dash",cur:null,area:"",tab:"sa",dirty:false,V:null,navOpen:false};
 const D=()=>S.dossiers[ui.cur];
 const getP=(o,p)=>p.split(".").reduce((a,k)=>a==null?a:a[k],o);
 function setP(o,p,v){const k=p.split("."),l=k.pop();k.reduce((a,x)=>a[x],o)[l]=v}
@@ -274,10 +274,10 @@ function nav(){const a=ui.view,u=a==="dash"?"dash":"list";
  <div class="tw-links"><a class="tw-link${u==="dash"?" active":""}" href="#" data-go="dash">Dashboard</a></div>
  <div class="tw-links"><a class="tw-link${u==="list"?" active":""}" href="#" data-go="list">Economic Dossier Report</a></div></div>
  <div class="tw-right"><button class="tw-user" type="button" id="usrbtn" aria-haspopup="true"><span>${MISSION}</span>${CHEV}</button>
- <div class="tw-menu" id="usrmenu"><a href="#" data-noop>Profile</a><a href="#" data-noop>Log Out</a></div></div>
+ <div class="tw-menu" id="usrmenu"><a href="#" data-noop>Profile</a><a href="#" data-logout>Log Out</a></div></div>
  <div class="tw-burger"><button type="button" id="burger" aria-label="Menu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M4 6h16M4 12h16M4 18h16"/></svg></button></div></div></div>
  <div class="tw-resp${ui.navOpen?" open":""}" id="resp"><div style="padding:.5rem 0 .75rem"><a class="tw-rlink${u==="dash"?" active":""}" href="#" data-go="dash">Dashboard</a><a class="tw-rlink${u==="list"?" active":""}" href="#" data-go="list">Economic Dossier Report</a></div>
- <div class="tw-rinfo"><b>${MISSION}</b><span>${EMAIL}</span><div style="margin-top:.5rem"><a class="tw-rlink" href="#" data-noop>Profile</a><a class="tw-rlink" href="#" data-noop>Log Out</a></div></div></div></nav>`}
+ <div class="tw-rinfo"><b>${MISSION}</b><span>${EMAIL}</span><div style="margin-top:.5rem"><a class="tw-rlink" href="#" data-noop>Profile</a><a class="tw-rlink" href="#" data-logout>Log Out</a></div></div></div></nav>`}
 const head=h=>`<header class="tw-head"><div class="tw-wrap">${h}</div></header>`;
 const area=e=>e;
 function counts(){const L=Object.values(S.dossiers).filter(d=>!ui.area||d.econ===ui.area);
@@ -290,7 +290,7 @@ function vDash(){const c=counts(),tile=(l,v,col,i)=>`<div class="col-12 col-sm-6
  <div class="row g-3 mb-4">${big("GDP Growth","5.40 %","","success","up")}${big("Total Land Size","330803.10","Sq KM","primary","geo")}${big("Total Population","34.2","Mil","info","ppl")}</div>
  <div class="card p-4 shadow-sm border-0 rounded-4 mb-4 bg-white"><div class="row align-items-center"><div class="col-md-2 border-end py-1"><h6 class="fw-bold text-dark m-0">Areas Covered</h6><small class="text-muted d-block mt-1">Muscat</small></div>
  <div class="col-md-10 ps-md-4 mt-2 mt-md-0"><div class="d-flex flex-wrap gap-2 align-items-center">${chips}<span class="text-muted small ms-1">${ui.area?`Showing ${esc(ui.area)} only · <a href="#" data-area="">show all</a>`:"Select an area to filter the figures below"}</span></div></div></div></div>
- <div class="row g-3">${tile("Total Reports",c.t,"primary","folder")}${tile("Pending Approval",c.p,"warning","hour")}${tile("Approved Reports",c.a,"success","ok")}${tile("Requires Action",c.r,"danger","warn")}</div></div></div></main>`}
+ ${returnedPanel()}<div class="row g-3">${tile("Total Reports",c.t,"primary","folder")}${tile("Pending Approval",c.p,"warning","hour")}${tile("Approved Reports",c.a,"success","ok")}${tile("Requires Action",c.r,"danger","warn")}</div></div></div></main>`}
 function vList(){const L=S.order.filter(e=>!ui.area||e===ui.area).map(e=>S.dossiers[e]);
  const rowsH=L.map(d=>{const st=STAT[d.status];return `<tr><td class="fw-semibold">${esc(d.type)} [${esc(d.econ)}]</td><td>2026 (Jan-June)</td><td><span class="badge text-bg-${st[1]}${st[1]==="warning"?" text-dark":""}">${st[0]}</span>${d.note&&d.status==="Action"?`<div class="small text-danger mt-1">${esc(d.note)}</div>`:""}</td>
   <td class="text-end text-nowrap">${d.status==="Draft"||d.status==="Action"?`<a href="#" class="btn btn-primary btn-sm rounded-3 px-3" data-edit="${esc(d.econ)}">Edit</a>`:""} <a href="#" class="btn btn-outline-secondary btn-sm rounded-3 px-3" data-view="${esc(d.econ)}">View</a></td></tr>`}).join("");
@@ -353,9 +353,9 @@ function vEdit(){const d=D(),ro=d.status==="Pending"||d.status==="Approved";
  ${TABS.map(([k,l])=>`<button class="nav-link text-start px-4 py-2 rounded-pill${ui.tab===k?" active":""}" id="tab-${k}" data-tab="${k}" type="button" role="tab" aria-controls="pane-${k}" aria-selected="${ui.tab===k}">${l}</button>`).join("")}
  <a href="#" data-view="${esc(d.econ)}" class="nav-link text-start px-4 py-2 rounded-pill text-decoration-none">👁️‍🗨️ View and Send</a></div></div>
  <div class="col-md-8 col-lg-9 mt-3 mt-md-0"><div class="tab-content bg-light p-4 rounded-4 shadow-sm border h-100">
- ${d.status==="Action"&&d.note?`<div class="alert alert-danger py-2 small" role="alert">${esc(d.note)}</div>`:""}${ro?`<div class="alert alert-info py-2 small" role="alert">This report has been submitted and can no longer be edited.</div>`:""}
+ ${d.status==="Action"?remarksAlert(d):""}${ro?`<div class="alert alert-info py-2 small" role="alert">This report has been submitted and can no longer be edited.</div>`:""}
  <fieldset ${ro?"disabled":""} style="border:0;padding:0;margin:0;min-width:0">
- ${[["sa",paneSA],["macro",paneMacro],["trade",paneTrade],["kp",paneKP]].map(([k,f])=>`<div class="tab-pane fade${ui.tab===k?" show active":""}" id="pane-${k}" role="tabpanel" aria-labelledby="tab-${k}" tabindex="0">${f(d)}</div>`).join("")}</fieldset>
+ ${[["sa",paneSA],["macro",paneMacro],["trade",paneTrade],["kp",paneKP]].map(([k,f])=>`<div class="tab-pane fade${ui.tab===k?" show active":""}" id="pane-${k}" role="tabpanel" aria-labelledby="tab-${k}" tabindex="0">${d.status==="Action"?secComment(d,k):""}${f(d)}</div>`).join("")}</fieldset>
  </div></div></div></div></div></div></div></div></main>`}
 
 function vView(){const d=D(),m=d.macro,T=d.trade,I=readyIssues(d),st=STAT[d.status];
@@ -386,6 +386,8 @@ function vView(){const d=D(),m=d.macro,T=d.trade,I=readyIssues(d),st=STAT[d.stat
 
 /* ---------- shell, events ---------- */
 function render(){const v=ui.view;
+ if(v==="login"){$("#app").innerHTML=vLogin();window.scrollTo(0,0);return}
+ if(ui.role==="sec"){renderSec();return}
  $("#app").innerHTML=nav()+(v==="dash"?vDash():v==="list"?vList():v==="edit"?vEdit():vView());
  if(v==="edit"){recheck();updFx();$$("textarea[data-cnt]").forEach(cnt)}window.scrollTo(0,0)}
 function go(view,econ,tab){if(ui.view==="edit"&&ui.dirty&&!confirm("You have unsaved changes. Leave this page without saving?"))return;ui.dirty=false;ui.view=view;if(econ)ui.cur=econ;if(tab)ui.tab=tab;ui.navOpen=false;render()}
@@ -407,12 +409,12 @@ function swal(icon,title,text,list){return new Promise(res=>{const b=document.cr
  b.innerHTML=`<div class="swal-pop" role="dialog" aria-modal="true" aria-labelledby="swt"><div class="swal-icon ${icon}">${ic}</div><h2 id="swt">${esc(title)}</h2><div class="swal-text">${esc(text)}${list?`<ul>${list.map(x=>`<li>${esc(x)}</li>`).join("")}</ul>`:""}</div><button class="btn btn-primary" type="button">OK</button></div>`;
  document.body.appendChild(b);const ok=$("button",b);ok.focus();const close=()=>{b.remove();res()};ok.onclick=close;b.addEventListener("keydown",e=>{if(e.key==="Escape")close()});b.addEventListener("mousedown",e=>{if(e.target===b)close()})})}
 function applyFix(i){const f=ui.V.fx[i];if(!f)return;f.set.forEach(([p,v])=>setP(D(),p,v));dirty();const t=ui.tab;rerenderPane(t);}
-function rerenderPane(t){const d=D(),f={sa:paneSA,macro:paneMacro,trade:paneTrade,kp:paneKP}[t];$("#pane-"+t).innerHTML=f(d);$$("textarea[data-cnt]").forEach(cnt);recheck()}
+function rerenderPane(t){const d=D(),f={sa:paneSA,macro:paneMacro,trade:paneTrade,kp:paneKP}[t];$("#pane-"+t).innerHTML=(d.status==="Action"?secComment(d,t):"")+f(d);$$("textarea[data-cnt]").forEach(cnt);recheck()}
 function download(name,type,text){const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([text],{type}));a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},500)}
 const TABPFX={sa:"sa.",macro:"macro.",trade:"trade.",kp:"kp."};
 async function save(t){const d=D(),V=validate(d);const errs=V.err.filter(e=>e.p.startsWith(TABPFX[t]));
  if(errs.length){recheck();await swal("error","Please check the highlighted fields","These entries cannot be saved yet:",errs.slice(0,4).map(e=>e.msg.length>140?e.msg.slice(0,137)+"…":e.msg));const el=document.getElementById(pid(errs[0].p));if(el)el.focus();return}
- d.updated=new Date().toISOString();persist();ui.dirty=false;$$(".unsaved").forEach(e=>e.hidden=true);await swal("success","Saved!","Data has been saved")}
+ d.updated=new Date().toISOString();persist();audit("mission:"+d.econ,"Saved "+t+" tab",MISSION);ui.dirty=false;$$(".unsaved").forEach(e=>e.hidden=true);await swal("success","Saved!","Data has been saved")}
 document.addEventListener("click",e=>{const t=e.target;
  if(!t.closest(".cb"))cbClose();
  let a;
@@ -435,7 +437,7 @@ document.addEventListener("click",e=>{const t=e.target;
 async function submitReport(){const d=D(),I=readyIssues(d);
  if(I.miss.length||I.errs.length){const el=$("#issues");if(el)el.scrollIntoView({block:"center"});await swal("error","Report is not ready","Please complete or correct "+(I.miss.length+I.errs.length)+" item(s) listed at the top of the page before submitting.");return}
  if(!confirm("Are you sure you want to submit this report for approval? Please review all information below before making final submission."))return;
- d.status="Pending";d.updated=new Date().toISOString();persist();await swal("success","Submitted!","The report has been sent for approval (demo only – nothing leaves your browser).");go("list")}
+ d.status="Pending";d.updated=new Date().toISOString();persist();audit("mission:"+d.econ,"Submitted for approval",MISSION);await swal("success","Submitted!","The report has been sent for approval (demo only – nothing leaves your browser).");go("list")}
 document.addEventListener("submit",e=>e.preventDefault());
 document.addEventListener("input",e=>{const t=e.target;if(!t.dataset||!t.dataset.p||ui.view!=="edit")return;
  if(t.dataset.cb){cbOpen(t,t.value);if(t.dataset.cb==="co")setP(D(),t.dataset.p,t.value);dirty();return}
@@ -458,4 +460,3 @@ document.addEventListener("keydown",e=>{const t=e.target;
   if(e.key==="Escape"){cbClose();return}}});
 $("#app").addEventListener("mouseover",e=>{const li=e.target.closest(".cb-list li[data-v]");if(li&&!li.classList.contains("dis")){$$(".cb-list li.on").forEach(x=>x.classList.remove("on"));li.classList.add("on")}});
 $("#app").addEventListener("mousedown",e=>{if(e.target.closest(".cb-list"))e.preventDefault()});
-render();
