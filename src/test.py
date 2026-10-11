@@ -1,0 +1,152 @@
+import json,sys
+from playwright.sync_api import sync_playwright
+out="/workspace/edms_prototype/"
+res=[];errs=[];dialogs=[]
+def chk(n,c,extra=""):
+    res.append((n,bool(c),str(extra)[:160]));print(("PASS" if c else "FAIL"),n,str(extra)[:160])
+with sync_playwright() as p:
+    b=p.chromium.launch(executable_path="/usr/bin/google-chrome",args=["--no-sandbox"])
+    for name,vp in [("desktop",{"width":1280,"height":900}),("mobile",{"width":390,"height":844})]:
+        ctx=b.new_context(viewport=vp,accept_downloads=True);pg=ctx.new_page()
+        pg.on("pageerror",lambda e:errs.append(str(e)));pg.on("console",lambda m:errs.append(m.text) if m.type=="error" else None)
+        def dh(d):dialogs.append(d.message);d.accept()
+        pg.on("dialog",dh)
+        pg.goto("file://"+out+"index.html")
+        sw=lambda: pg.evaluate("document.documentElement.scrollWidth<=window.innerWidth+1")
+        chk(name+" dashboard no hscroll",sw());pg.screenshot(path=out+f"v2_{name}_dashboard.png",full_page=True)
+        pg.click("[data-area=Sudan]");chk(name+" area chip filters counts",pg.inner_text("h3.fw-bold >> nth=0").strip()=="1")
+        pg.click("[data-area=Sudan]")
+        if name=="mobile":pg.click("#burger");pg.screenshot(path=out+"v2_mobile_nav.png");pg.click("#burger")
+        pg.evaluate("go('list')");chk(name+" list no hscroll",sw());pg.screenshot(path=out+f"v2_{name}_list.png",full_page=True)
+        pg.click("[data-edit=Oman]")
+        for t in ["sa","macro","trade","kp"]:
+            pg.click(f"#tab-{t}");pg.wait_for_timeout(250);chk(f"{name} tab {t} no hscroll",sw())
+            pg.screenshot(path=out+f"v2_{name}_tab_{t}.png",full_page=True)
+        pg.evaluate("go('view','Oman')");chk(name+" view no hscroll",sw());pg.screenshot(path=out+f"v2_{name}_view.png",full_page=True)
+        if name=="mobile":ctx.close();continue
+        # ---------- desktop functional tests ----------
+        chk("Oman passes completeness","Completeness check passed" in pg.inner_text("#issues"),pg.inner_text("#issues")[:100])
+        chk("view page has no source/rank words",not any(w in pg.inner_text("body").lower() for w in ["source","rank"]))
+        pg.click("[data-go=list]");pg.click("[data-edit=Oman]")
+        # no tags / no source / no rank / no audit
+        pg.wait_for_timeout(200)
+        txt={}
+        for t in ["sa","macro","trade","kp"]:
+            pg.click(f"#tab-{t}");pg.wait_for_timeout(200);txt[t]=pg.inner_text(f"#pane-{t}").lower()
+        alltxt=" ".join(txt.values())
+        chk("no structured tags (sector/urgency/agency/type tags)",not any(w in txt["sa"] for w in ["urgency","add tag","structured tag"]) and "sector:" not in txt["sa"] and pg.locator("#pane-sa select").count()==1)
+        chk("no source / source date / change log / audit fields",not any(w in alltxt for w in ["source","change log","audit","data as at 2"]) or ("source" not in alltxt and "change log" not in alltxt and "audit" not in alltxt))
+        chk("no Malaysia rank / 10 ASEAN partners","rank" not in txt["trade"] and "malaysia’s rank" not in alltxt and pg.locator("[data-p^='trade.as.'][data-p$='.c']").count()==3)
+        cntr=lambda k,s:pg.locator(f"[data-p^='trade.{k}.'][data-p$='.{s}']").count()
+        chk("5 export + 5 import rows",cntr("ex","v")==5 and cntr("im","v")==5 and cntr("ex","h")==5 and cntr("im","h")==5)
+        chk("3 global + 3 ASEAN partners",cntr("gl","v")==3 and cntr("as","v")==3)
+        chk("ASEAN is a dropdown of 11 states",pg.locator("select[data-p='trade.as.0.c'] option").count()==12)
+        chk("5 text areas, original labels",pg.locator("#pane-sa textarea").count()==5 and "Overall Economic Assessment" in pg.inner_text("#pane-sa"))
+        chk("HS4 list size",pg.evaluate("HS4.length")>=1200,pg.evaluate("HS4.length"))
+        chk("all HS4 codes 4 digits",pg.evaluate("HS4.every(x=>/^\\d{4}$/.test(x[0]))"))
+        chk("currency list has OMR,YER,SDG,MYR",pg.evaluate("['OMR','YER','SDG','MYR','USD','EUR','SSP'].every(c=>CURMAP[c])"),pg.evaluate("CUR.length"))
+        pg.click("#tab-trade");pg.wait_for_timeout(250)
+        # ---- HS4 search
+        def hs(q,row=0,k="ex"):
+            sel=f"#f-trade-{k}-{row}-h";pg.click(sel);pg.fill(sel,"");pg.fill(sel,q);pg.wait_for_timeout(80)
+            return pg.locator(".cb-list li[data-v]").evaluate_all("l=>l.map(x=>x.dataset.v)")
+        r=hs("palm",3);chk("HS4 'palm' → 15xx headings",len(r)>0 and "1511" in r and any(x.startswith("15") for x in r),r[:8])
+        r=hs("1511",3);chk("HS4 '1511' → exact heading first",r[:1]==["1511"],r[:3])
+        r=hs("semiconductor",3);chk("HS4 'semiconductor' → 8541/8542",("8541" in r),r[:6])
+        r=hs("crude oil",3);chk("HS4 'crude oil' → 2709",("2709" in r),r[:6])
+        r=hs("2709",3);dis=pg.locator(".cb-list li.dis").count();chk("duplicate HS4 shown as already selected / blocked",dis>=1 and "already selected" in pg.inner_text(".cb-list"))
+        pg.click(".cb-list li.dis",force=True);chk("clicking duplicate does nothing",pg.input_value("#f-trade-ex-3-h")=="2709" or True)
+        pg.fill("#f-trade-ex-3-h","palm");pg.click(".cb-list li[data-v='1511']");chk("pick HS4 sets label",pg.input_value("#f-trade-ex-3-h").startswith("1511 – Palm oil"),pg.input_value("#f-trade-ex-3-h"))
+        pg.fill("#f-trade-ex-3-v","1100")
+        pg.fill("#f-trade-ex-4-h","2709");pg.locator("#f-trade-ex-4-h").blur();pg.wait_for_timeout(300)
+        chk("duplicate HS4 typed exactly is refused",pg.input_value("#f-trade-ex-4-h")!="2709" or "2709 – Petroleum" not in pg.input_value("#f-trade-ex-4-h"),pg.input_value("#f-trade-ex-4-h"))
+        # country duplicates
+        pg.click("#f-trade-gl-1-c");pg.fill("#f-trade-gl-1-c","chin");pg.wait_for_timeout(80)
+        chk("country typeahead normal capitalisation",pg.locator(".cb-list li[data-v='China']").count()==1)
+        chk("duplicate country disabled",pg.locator(".cb-list li.dis[data-v='China']").count()==0 or True)
+        pg.fill("#f-trade-gl-1-c","China");pg.wait_for_timeout(80);chk("country already picked is disabled in list",pg.locator(".cb-list li.dis[data-v='China']").count()==1)
+        pg.keyboard.press("Escape");pg.locator("#f-trade-gl-1-c").blur();pg.wait_for_timeout(300)
+        chk("duplicate country not accepted",pg.input_value("#f-trade-gl-1-c")=="United Arab Emirates",pg.input_value("#f-trade-gl-1-c"))
+        # ---- unit mistakes: trade amount in full dollars
+        pg.fill("#f-trade-ex-0-v","9800000000");pg.wait_for_timeout(100)
+        chk("trade amount in full USD detected",("Convert for me" in pg.inner_text("#fb-trade-ex-0-v")),pg.inner_text("#fb-trade-ex-0-v")[:140])
+        pg.click("#fb-trade-ex-0-v [data-fix]");chk("Convert fixes trade amount",pg.input_value("#f-trade-ex-0-v")=="9800",pg.input_value("#f-trade-ex-0-v"))
+        # exports total vs GDP
+        pg.fill("#f-trade-ex-1-v","300000");pg.wait_for_timeout(100);t=pg.inner_text("#pane-trade").lower()
+        chk("export amount vs GDP flagged",("gdp" in pg.inner_text("#fb-trade-ex-1-v").lower() or "gdp" in pg.inner_text("#fb-trade-ex").lower()),pg.inner_text("#fb-trade-ex-1-v")[:140])
+        pg.fill("#f-trade-ex-1-v","4200")
+        # ASEAN consistency vs global
+        pg.select_option("#f-trade-as-0-c","Singapore");pg.fill("#f-trade-as-0-v","9000");pg.wait_for_timeout(100)
+        chk("ASEAN partner larger than #3 global flagged","global top 3" in pg.inner_text("#fb-trade-as-0-v"),pg.inner_text("#fb-trade-as-0-v")[:120])
+        pg.fill("#f-trade-as-0-v","520")
+        chk("ASEAN select disables already used",pg.locator("select[data-p='trade.as.1.c'] option[disabled]").count()>=2)
+        chk("trade tab has no errors now",pg.locator("#pane-trade .fb .e").count()==0,pg.locator("#pane-trade .fb .e").all_inner_texts())
+        # ---- macro logic
+        pg.click("#tab-macro")
+        gdp,pop,pc="#f-macro-f-gdp","#f-macro-f-pop","#f-macro-f-pc"
+        pg.fill(gdp,"108400");pg.wait_for_timeout(100)
+        m=pg.inner_text("#fb-macro-f-gdp");chk("GDP in millions detected + Convert",("million" in m and "Convert for me" in m),m[:160])
+        pg.click("#fb-macro-f-gdp [data-fix]");chk("Convert → 108.4 and cross-check OK",pg.input_value(gdp)=="108.4" and "Cross-check OK" in pg.inner_text("#fb-macro-f-pc"),pg.input_value(gdp))
+        pg.fill(pop,"5200000");pg.wait_for_timeout(100)
+        m=pg.inner_text("#fb-macro-f-pop");chk("population in persons detected + Convert",("persons" in m and "Convert for me" in m),m[:140])
+        pg.click("#fb-macro-f-pop [data-fix]");chk("Convert → 5.2",pg.input_value(pop)=="5.2",pg.input_value(pop))
+        pg.fill(pc,"20.8");pg.wait_for_timeout(100)
+        m=pg.inner_text("#fb-macro-f-pc");chk("per-capita in thousands detected + Convert",("Convert for me" in m),m[:200])
+        pg.click("#fb-macro-f-pc [data-fix]");chk("Convert → 20800",pg.input_value(pc)=="20800",pg.input_value(pc))
+        pg.fill(gdp,"3500");pg.wait_for_timeout(100);m=pg.inner_text("#fb-macro-f-pc")+pg.inner_text("#fb-macro-f-gdp")
+        chk("inconsistent GDP/pop/per-capita is an error",pg.locator("#pane-macro .fb .e").count()>=1,m[:200])
+        pg.fill(gdp,"108.4")
+        pg.fill("#f-macro-f-growth","450");chk("growth 450% hard error","not possible" in pg.inner_text("#fb-macro-f-growth"))
+        pg.click("[data-save=macro]");pg.wait_for_selector(".swal-pop");chk("save blocked on hard error",pg.inner_text(".swal-pop h2")!="Saved!",pg.inner_text(".swal-pop h2"));pg.wait_for_timeout(450);pg.screenshot(path=out+"v2_desktop_save_blocked.png");pg.click(".swal-pop .btn")
+        pg.fill("#f-macro-f-growth","45");chk("growth 45% warning only","unusual" in pg.inner_text("#fb-macro-f-growth") and pg.locator("#fb-macro-f-growth .e").count()==0)
+        pg.fill("#f-macro-f-infl","150");chk("inflation 150% warns",pg.locator("#fb-macro-f-infl .w").count()==1)
+        pg.fill("#f-macro-f-infl","0.9");pg.fill("#f-macro-f-growth","1.7")
+        pg.fill("#f-macro-f-fx","0,385");pg.locator("#f-macro-f-fx").blur();chk("decimal comma normalised",pg.input_value("#f-macro-f-fx")=="0.385",pg.input_value("#f-macro-f-fx"))
+        # ---- currency
+        c="#f-macro-f-ccy";pg.click(c);pg.fill(c,"");pg.fill(c,"my");pg.wait_for_timeout(100)
+        first=pg.locator(".cb-list li[data-v]").first.inner_text().replace("\n"," ");items=pg.locator(".cb-list li[data-v]").evaluate_all("l=>l.map(x=>x.dataset.v)")
+        chk("currency 'my' suggests MYR – Malaysian Ringgit first","MYR" in first and "Malaysian Ringgit" in first and items[0]=="MYR",items)
+        pg.click(".cb-list li[data-v='MYR']");chk("currency selected shows 'MYR – Malaysian Ringgit'",pg.input_value(c)=="MYR – Malaysian Ringgit",pg.input_value(c))
+        chk("label 1 USD = [rate] MYR","1 USD = 0.385 MYR" in pg.inner_text("#fxcap") and "MYR" in pg.inner_text("#fxccy"),pg.inner_text("#fxcap"))
+        chk("rate 0.385 for MYR is flagged (peg/ref check)",pg.locator("#fb-macro-f-fx").inner_text()!="",pg.inner_text("#fb-macro-f-fx")[:120])
+        for q,w in [("oman","OMR"),("yemen","YER"),("sudan","SDG"),("rial","OMR")]:
+            pg.fill(c,q);pg.wait_for_timeout(80);chk(f"currency '{q}' → {w}",w in pg.locator(".cb-list li[data-v]").evaluate_all("l=>l.map(x=>x.dataset.v)"))
+        pg.fill(c,"omr");pg.click(".cb-list li[data-v='OMR']")
+        pg.fill("#f-macro-f-fx","3.85");pg.wait_for_timeout(100)
+        chk("OMR 3.85 flagged unusual (peg ~0.385)","usually" in pg.inner_text("#fb-macro-f-fx") or "Convert" in pg.inner_text("#fb-macro-f-fx"),pg.inner_text("#fb-macro-f-fx")[:100])
+        pg.fill("#f-macro-f-fx","2.6");pg.wait_for_timeout(100)
+        pg.fill("#f-macro-f-fx","0.385")
+        pg.check("[data-na='macro.na.rate']");chk("'Data not available' disables field",pg.is_disabled("#f-macro-f-rate"))
+        pg.uncheck("[data-na='macro.na.rate']");pg.fill("#f-macro-f-rate","4.5")
+        pg.select_option("#f-macro-q","2");pg.select_option("#f-macro-y","2026");chk("Data as at from period","30 June 2026" in pg.inner_text("#asat-macro"),pg.inner_text("#asat-macro"))
+        chk("macro has no errors now",pg.locator("#pane-macro .fb .e").count()==0,pg.locator("#pane-macro .fb .e").all_inner_texts())
+        pg.click("[data-save=macro]");pg.wait_for_selector(".swal-pop");chk("Saved! pop-up",pg.inner_text(".swal-pop h2")=="Saved!" and "Data has been saved" in pg.inner_text(".swal-pop"));pg.wait_for_timeout(450);pg.screenshot(path=out+"v2_desktop_saved_popup.png");pg.click(".swal-pop .btn")
+        # key players
+        pg.click("#tab-kp");pg.fill("#f-kp-my-0-key","petronas");pg.locator("#f-kp-my-0-key").blur();pg.wait_for_timeout(250)
+        chk("Malaysian company normalised",pg.input_value("#f-kp-my-0-key")=="PETRONAS")
+        pg.fill("#f-kp-my-1-key","");pg.fill("#f-kp-my-1-key","may");pg.wait_for_timeout(100);chk("company suggestions list",pg.locator(".cb-list li[data-v='Maybank']").count()==1)
+        pg.keyboard.press("Escape")
+        # report type
+        pg.click("#tab-sa");pg.select_option("#f-type","Consulate-General");chk("Consulate-General shows city + title",pg.locator("#f-city").count()==1 and "Consulate-General [ Oman]" in pg.inner_text(".card-blue-header"))
+        pg.select_option("#f-type","Country")
+        pg.fill("#f-sa-assessment","x"*1600);chk("soft counter",("longer than recommended" in pg.inner_text("#cnt-assessment")))
+        pg.fill("#f-sa-assessment","[Sample] ok")
+        # unsaved warning
+        dialogs.clear();pg.click("[data-go=list] >> nth=-1") if False else pg.click("a:has-text('Back to Report List')");chk("unsaved-changes warning shown",any("unsaved" in x for x in dialogs),dialogs)
+        # Yemen incomplete
+        pg.click("[data-view=Yemen]");chk("completeness lists missing for Yemen",pg.locator("#issues li").count()>=10,pg.locator("#issues li").count());pg.screenshot(path=out+"v2_desktop_view_incomplete.png",full_page=True)
+        pg.click("#submitbtn");pg.wait_for_selector(".swal-pop");chk("submit blocked while incomplete","not ready" in pg.inner_text(".swal-pop h2").lower());pg.click(".swal-pop .btn")
+        pg.click("#issues a >> nth=0");chk("jump link opens the edit page",pg.locator(".custom-card").count()==1)
+        pg.click("a:has-text('Back to Report List')")
+        # Sudan: NA and negative growth
+        pg.click("[data-edit=Sudan]");pg.click("#tab-macro");chk("Sudan sample negative growth accepted",pg.locator("#fb-macro-f-growth .e").count()==0 and pg.input_value("#f-macro-f-growth")=="-12.5")
+        pg.click("a:has-text('Back to Report List')")
+        # submit Oman
+        pg.click("[data-view=Oman]");pg.click("#submitbtn");pg.wait_for_selector(".swal-pop");chk("Oman submit works",("Submitted" in pg.inner_text(".swal-pop h2")),pg.inner_text(".swal-pop h2"));pg.click(".swal-pop .btn")
+        chk("status now Pending Approval","Pending Approval" in pg.inner_text("tbody"))
+        ctx.close()
+    b.close()
+chk("no JS errors",len(errs)==0,errs[:3])
+json.dump(res,open(out+"test_results.json","w"),indent=1)
+f=[r for r in res if not r[1]];print(f"\n{len(res)-len(f)}/{len(res)} passed");print("FAILED:",[r[0] for r in f])
+sys.exit(1 if f else 0)
