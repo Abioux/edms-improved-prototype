@@ -1,0 +1,481 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>EDMS Economic Dossier – Improved Data-Entry PROTOTYPE</title>
+<meta name="robots" content="noindex">
+<style>
+:root{--navy:#0B1F3A;--gold:#C9A227;--bg:#F4F5F7;--ink:#1b2430;--mut:#4a5568;--line:#d5d9e0;--err:#b3261e;--warn:#8a5a00;--ok:#1b7a3d}
+*{box-sizing:border-box}
+html{-webkit-text-size-adjust:100%}
+body{margin:0;background:var(--bg);color:var(--ink);font:15px/1.5 "Segoe UI",Roboto,Arial,sans-serif;overflow-x:hidden}
+.banner{background:#7a1010;color:#fff;text-align:center;padding:6px 10px;font-weight:700;font-size:13px;letter-spacing:.3px;position:sticky;top:0;z-index:50}
+header.top{background:var(--navy);color:#fff;border-bottom:4px solid var(--gold)}
+.wrap{max-width:1080px;margin:0 auto;padding:0 14px}
+header.top .wrap{display:flex;flex-wrap:wrap;align-items:center;gap:10px;padding:10px 14px}
+.logo{font-weight:700;font-size:20px;color:var(--gold);letter-spacing:1px}
+.who{margin-left:auto;font-size:13px;text-align:right}
+.who small{display:block;opacity:.85}
+button,.btn{font:inherit;cursor:pointer;border:1px solid var(--navy);background:#fff;color:var(--navy);border-radius:6px;padding:8px 14px;min-height:40px}
+button.pri{background:var(--navy);color:#fff}button.gold{background:var(--gold);border-color:var(--gold);color:#0B1F3A;font-weight:700}
+button.sm{padding:4px 10px;min-height:32px;font-size:13px}button.danger{border-color:var(--err);color:var(--err)}
+button:disabled{opacity:.5;cursor:not-allowed}
+:focus-visible{outline:3px solid #1a5fd0;outline-offset:2px}
+main{padding:16px 0 60px}
+h1{font-size:22px;color:var(--navy);margin:6px 0 4px}h2{font-size:18px;color:var(--navy);margin:0 0 8px}h3{font-size:15px;color:var(--navy);margin:14px 0 6px}
+.card{background:#fff;border:1px solid var(--line);border-radius:8px;padding:14px;margin:12px 0}
+.grid{display:grid;gap:12px}.g2{grid-template-columns:1fr}.g4{grid-template-columns:repeat(2,1fr)}
+@media(min-width:720px){.g2{grid-template-columns:1fr 1fr}.g4{grid-template-columns:repeat(4,1fr)}.g3{grid-template-columns:repeat(3,1fr)}}
+.stat{border-left:5px solid var(--gold);background:#fff;border-radius:6px;padding:10px 12px;border-top:1px solid var(--line);border-right:1px solid var(--line);border-bottom:1px solid var(--line)}
+.stat b{display:block;font-size:24px;color:var(--navy)}.stat span{font-size:12.5px;color:var(--mut)}
+.chip{display:inline-block;border-radius:12px;padding:2px 10px;font-size:12px;font-weight:600;border:1px solid}
+.s-Draft{background:#eef1f6;color:#34425a;border-color:#9fb0cc}.s-Pending{background:#fff6dc;color:#6b4e00;border-color:var(--gold)}.s-Approved{background:#e3f4e8;color:#14602f;border-color:#7cc592}.s-Action{background:#fde9e7;color:#8e1b14;border-color:#e59a94}
+.sample{background:#fff6dc;border:1px dashed var(--gold);padding:6px 10px;border-radius:6px;font-size:13px;margin:8px 0}
+.areas{display:flex;flex-wrap:wrap;gap:8px}.areas button[aria-pressed=true]{background:var(--navy);color:#fff}
+table{border-collapse:collapse;width:100%;font-size:14px}th,td{border:1px solid var(--line);padding:6px 8px;text-align:left;vertical-align:top}th{background:#eef1f6;color:var(--navy)}
+.tablewrap{overflow-x:auto}
+.tabs{display:flex;gap:4px;overflow-x:auto;border-bottom:3px solid var(--navy);margin-top:10px;padding-bottom:0}
+.tabs button{border-radius:6px 6px 0 0;border-bottom:none;background:#e5e8ee;white-space:nowrap;min-height:44px;text-align:left}
+.tabs button[aria-selected=true]{background:var(--navy);color:#fff}
+.tabs small{display:block;font-size:11px;opacity:.9}
+.bar{height:8px;background:#dde2ea;border-radius:4px;overflow:hidden}.bar i{display:block;height:100%;background:var(--gold)}
+.fg{margin:12px 0}.fg label,.lbl{display:block;font-weight:600;color:var(--navy);margin-bottom:2px}
+.req{color:var(--err);margin-left:3px}.sr{position:absolute;left:-9999px}
+.hint{font-size:13px;color:var(--mut);margin-bottom:4px}
+input[type=text],input[type=date],select,textarea{width:100%;font:inherit;padding:8px 10px;border:1px solid #8793a6;border-radius:6px;background:#fff;color:var(--ink);min-height:40px}
+textarea{min-height:120px;resize:vertical}
+input[readonly]{background:#eef1f6}
+[aria-invalid=true]{border-color:var(--err)!important;box-shadow:0 0 0 1px var(--err)}
+.msg{font-size:13px;min-height:0}.msg.e{color:var(--err);font-weight:600;margin-top:3px}.msg.w{color:var(--warn);font-weight:600;margin-top:3px}.msg.i{color:var(--mut);margin-top:3px}
+.with-suf{display:flex;align-items:stretch}.with-suf input{border-radius:6px 0 0 6px}.suf{background:#eef1f6;border:1px solid #8793a6;border-left:none;border-radius:0 6px 6px 0;padding:8px 10px;white-space:nowrap;font-size:13px;color:var(--mut);display:flex;align-items:center}
+.na{font-size:13px;margin-top:3px;display:flex;align-items:center;gap:6px}.na input{width:18px;height:18px}
+.ind{border:1px solid var(--line);border-radius:8px;padding:10px 12px;margin:12px 0;background:#fcfcfd}
+.ind .cols{display:grid;gap:10px;grid-template-columns:1fr}
+@media(min-width:720px){.ind .cols{grid-template-columns:2fr 1fr 1fr 1fr}}
+.row{display:grid;gap:8px;grid-template-columns:1fr;border:1px solid var(--line);border-radius:6px;padding:8px;margin:8px 0;background:#fff;position:relative}
+@media(min-width:720px){.row.c3{grid-template-columns:2fr 1fr 1fr auto}.row.c2{grid-template-columns:2fr 1fr auto}.row.c4{grid-template-columns:repeat(4,1fr) auto}.row.cp{grid-template-columns:2fr 1.4fr 1.4fr 1fr auto}}
+.row .rn{font-weight:700;color:var(--navy)}
+.ok{color:var(--ok)}.panel[hidden]{display:none}
+.my{background:#fff3c4!important;font-weight:700}
+.alert{border-left:5px solid var(--warn);background:#fff6dc;padding:8px 12px;border-radius:4px;margin:8px 0;font-size:14px}
+.alert.e{border-color:var(--err);background:#fde9e7}
+.alert.o{border-color:var(--ok);background:#e3f4e8}
+.tag{display:grid;gap:6px;grid-template-columns:1fr 1fr;margin:6px 0;padding:8px;background:#f1f4f9;border-radius:6px}
+@media(min-width:720px){.tag{grid-template-columns:repeat(4,1fr) auto}}
+.cnt{font-size:12.5px;color:var(--mut);text-align:right}.cnt.over{color:var(--warn);font-weight:700}
+.status{font-size:13px;color:#d7dde8}
+.actions{display:flex;flex-wrap:wrap;gap:8px;margin:12px 0}
+.doc{background:#fff;border:1px solid var(--line);padding:18px;max-width:800px;margin:12px auto;font-size:13.5px}
+.doc h1{border-bottom:3px solid var(--gold);padding-bottom:6px;font-size:20px}.doc h2{font-size:15px;border-bottom:1px solid var(--line);margin-top:16px;padding-bottom:3px}
+.doc .wm{color:#7a1010;font-weight:700;font-size:12px}
+.doc p{white-space:pre-wrap;margin:4px 0}
+.toast{position:fixed;bottom:14px;left:50%;transform:translateX(-50%);background:var(--navy);color:#fff;padding:8px 16px;border-radius:6px;z-index:99;max-width:90vw}
+footer{text-align:center;color:var(--mut);font-size:12px;padding:20px}
+@media(max-width:600px){.who{margin-left:0;text-align:left;width:100%}h1{font-size:19px}.card{padding:10px}}
+@media print{
+ @page{size:A4;margin:14mm}
+ body{background:#fff;font-size:11pt}
+ .no-print,.banner,header.top,.tabs,footer{display:none!important}
+ main{padding:0}.wrap{max-width:none;padding:0}
+ .doc{border:none;padding:0;margin:0;max-width:none;font-size:10.5pt}
+ .doc h2{break-after:avoid}.doc table,.doc .blk{break-inside:avoid}
+ .panel:not(#panel-5){display:none!important}
+}
+</style></head><body>
+<div class="banner" role="note">PROTOTYPE – not connected to EDMS · sample data only</div>
+<header class="top"><div class="wrap"><div class="logo">edms</div><div><b>Economic Dossier Report</b><br><small>Ministry of Foreign Affairs Malaysia – improved data-entry prototype</small></div><div class="who"><b>Embassy of Malaysia, Muscat</b><small>mwmuscat@kln.gov.my</small></div></div></header>
+<main id="app" aria-live="off"></main>
+<footer>Front-end prototype · no server · no real data · saves only in this browser (localStorage)</footer>
+<script>
+const COUNTRIES="Afghanistan|Albania|Algeria|Andorra|Angola|Antigua and Barbuda|Argentina|Armenia|Australia|Austria|Azerbaijan|Bahamas|Bahrain|Bangladesh|Barbados|Belarus|Belgium|Belize|Benin|Bhutan|Bolivia|Bosnia and Herzegovina|Botswana|Brazil|Brunei|Bulgaria|Burkina Faso|Burundi|Cabo Verde|Cambodia|Cameroon|Canada|Central African Republic|Chad|Chile|China|Colombia|Comoros|Congo (DRC)|Congo (Republic)|Costa Rica|Côte d'Ivoire|Croatia|Cuba|Cyprus|Czechia|Denmark|Djibouti|Dominica|Dominican Republic|Ecuador|Egypt|El Salvador|Equatorial Guinea|Eritrea|Estonia|Eswatini|Ethiopia|Fiji|Finland|France|Gabon|Gambia|Georgia|Germany|Ghana|Greece|Grenada|Guatemala|Guinea|Guinea-Bissau|Guyana|Haiti|Honduras|Hong Kong|Hungary|Iceland|India|Indonesia|Iran|Iraq|Ireland|Israel|Italy|Jamaica|Japan|Jordan|Kazakhstan|Kenya|Kiribati|Korea (North)|Korea (South)|Kuwait|Kyrgyzstan|Laos|Latvia|Lebanon|Lesotho|Liberia|Libya|Liechtenstein|Lithuania|Luxembourg|Macao|Madagascar|Malawi|Malaysia|Maldives|Mali|Malta|Marshall Islands|Mauritania|Mauritius|Mexico|Micronesia|Moldova|Monaco|Mongolia|Montenegro|Morocco|Mozambique|Myanmar|Namibia|Nauru|Nepal|Netherlands|New Zealand|Nicaragua|Niger|Nigeria|North Macedonia|Norway|Oman|Pakistan|Palau|Palestine|Panama|Papua New Guinea|Paraguay|Peru|Philippines|Poland|Portugal|Qatar|Romania|Russia|Rwanda|Saint Kitts and Nevis|Saint Lucia|Saint Vincent and the Grenadines|Samoa|San Marino|Sao Tome and Principe|Saudi Arabia|Senegal|Serbia|Seychelles|Sierra Leone|Singapore|Slovakia|Slovenia|Solomon Islands|Somalia|South Africa|South Sudan|Spain|Sri Lanka|Sudan|Suriname|Sweden|Switzerland|Syria|Taiwan|Tajikistan|Tanzania|Thailand|Timor-Leste|Togo|Tonga|Trinidad and Tobago|Tunisia|Türkiye|Turkmenistan|Tuvalu|Uganda|Ukraine|United Arab Emirates|United Kingdom|United States|Uruguay|Uzbekistan|Vanuatu|Vatican City|Venezuela|Vietnam|Yemen|Zambia|Zimbabwe".split("|");
+const ASEAN=["Brunei","Cambodia","Indonesia","Laos","Malaysia","Myanmar","Philippines","Singapore","Thailand","Timor-Leste","Vietnam"];
+const HS="Live animals|Meat and edible meat offal|Fish and crustaceans|Dairy produce; eggs; honey|Products of animal origin, n.e.s.|Live trees and plants|Edible vegetables|Edible fruit and nuts|Coffee, tea, maté and spices|Cereals|Milling products; malt; starches|Oil seeds and oleaginous fruits|Lac; gums, resins and vegetable saps|Vegetable plaiting materials|Animal or vegetable fats and oils (incl. palm oil)|Preparations of meat, fish or crustaceans|Sugars and sugar confectionery|Cocoa and cocoa preparations|Preparations of cereals, flour or milk|Preparations of vegetables, fruit or nuts|Miscellaneous edible preparations|Beverages, spirits and vinegar|Residues and waste from food industries; animal feed|Tobacco and manufactured tobacco substitutes|Salt; sulphur; earths and stone; plaster, lime and cement|Ores, slag and ash|Mineral fuels, oils and products of their distillation|Inorganic chemicals; precious-metal compounds|Organic chemicals|Pharmaceutical products|Fertilisers|Tanning or dyeing extracts; paints and varnishes|Essential oils; perfumery, cosmetic or toilet preparations|Soap, washing preparations, waxes|Albuminoidal substances; glues; enzymes|Explosives; pyrotechnics; matches|Photographic or cinematographic goods|Miscellaneous chemical products|Plastics and articles thereof|Rubber and articles thereof|Raw hides and skins (other than furskins) and leather|Articles of leather; travel goods; handbags|Furskins and artificial fur|Wood and articles of wood; wood charcoal|Cork and articles of cork|Manufactures of straw, esparto or other plaiting materials|Pulp of wood; waste and scrap paper|Paper and paperboard; articles thereof|Printed books, newspapers, pictures|Silk|Wool, fine or coarse animal hair|Cotton|Other vegetable textile fibres; paper yarn|Man-made filaments|Man-made staple fibres|Wadding, felt and nonwovens; twine, cordage|Carpets and other textile floor coverings|Special woven fabrics; tufted textile fabrics; lace|Impregnated, coated or laminated textile fabrics|Knitted or crocheted fabrics|Articles of apparel and clothing accessories, knitted|Articles of apparel and clothing accessories, not knitted|Other made-up textile articles; sets; worn clothing|Footwear, gaiters and the like|Headgear and parts thereof|Umbrellas, walking-sticks, whips|Prepared feathers and down; artificial flowers|Articles of stone, plaster, cement, asbestos, mica|Ceramic products|Glass and glassware|Pearls, precious stones and metals; coin; jewellery|Iron and steel|Articles of iron or steel|Copper and articles thereof|Nickel and articles thereof|Aluminium and articles thereof|(Reserved for possible future use)|Lead and articles thereof|Zinc and articles thereof|Tin and articles thereof|Other base metals; cermets|Tools, implements, cutlery of base metal|Miscellaneous articles of base metal|Nuclear reactors, boilers, machinery and mechanical appliances|Electrical machinery and equipment; electronics (incl. semiconductors)|Railway or tramway locomotives and rolling stock|Vehicles other than railway or tramway rolling stock|Aircraft, spacecraft and parts thereof|Ships, boats and floating structures|Optical, photographic, measuring, medical instruments|Clocks and watches and parts thereof|Musical instruments; parts and accessories|Arms and ammunition; parts and accessories|Furniture; bedding; lamps; prefabricated buildings|Toys, games and sports requisites|Miscellaneous manufactured articles|Works of art, collectors' pieces and antiques".split("|").map((n,i)=>[String(i+1).padStart(2,"0"),n]).filter(x=>x[0]!=="77");
+const MYCOS=["PETRONAS","Maybank","CIMB","Sime Darby","Sime Darby Plantation","DXN","MPOC (Malaysian Palm Oil Council)","Gamuda","Sapura Energy","Telekom Malaysia","Axiata","Genting","Public Bank","Tenaga Nasional","MISC","IOI Corporation","Kuala Lumpur Kepong (KLK)","Top Glove","Hartalega","Malaysia Airlines","AirAsia","Khazanah Nasional","Bank Islam","Petronas Chemicals","Dialog Group","YTL Corporation","Sunway","UEM Group","Bumi Armada","Malaysia Airports","MyDIN","FGV Holdings","Kerry Group Malaysia","Press Metal","Sapura Kencana","SKS (Sunway Construction)","Berjaya"];
+const SECTORS=["Oil, gas and energy","Palm oil and agriculture","Halal industry","Electrical and electronics","Digital and ICT","Financial services / Islamic finance","Construction and infrastructure","Healthcare and pharma","Education","Tourism and aviation","Logistics and shipping","Mining and minerals","Manufacturing (other)","Retail and consumer goods","Other"];
+const AGENCIES=["MITI","MIDA","MATRADE","BNM","MOSTI","MOF","MOA (Agriculture)","KLN (Foreign Affairs)","MDEC","Other / not sure"];
+(function(){
+"use strict";
+const KEY="edms_proto_v1",MISSION="Embassy of Malaysia, Muscat",EMAIL="mwmuscat@kln.gov.my";
+const $=s=>document.querySelector(s);
+const esc=s=>String(s==null?"":s).replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#39;"}[c]));
+const today=()=>new Date().toISOString().slice(0,10);
+const nowT=()=>new Date().toLocaleTimeString("en-GB");
+const STAT={Draft:"Draft",Pending:"Pending approval",Approved:"Approved",Action:"Requires action"};
+const SA=[["overall","i) Overall Economic Assessment","Provide a concise assessment of the host country's overall economic performance during the reporting period. Highlight significant economic developments, major policy changes and the key factors driving the economy."],
+["implications","ii) Strategic Implications for Malaysia","Assess the direct impact of the host country’s economic and regulatory shifts on Malaysia's strategic interests."],
+["regulatory","iii) Regulatory Preparedness & Risks","Identify new or emerging regulatory developments, trade measures, compliance requirements or other risks that may affect Malaysian businesses, investments or economic interests."],
+["opportunities","iv) Opportunities in Priority Domains","Identify emerging commercial, investment or strategic opportunities that Malaysia could pursue through government engagement or private sector collaboration."],
+["recs","v) Mission's Recommendations","Suggest follow-up actions, agencies to notify, or platforms for escalation."]];
+const MF=[
+{k:"gdpGrowth",n:"i",l:"GDP Growth (%)",u:"%",lo:-30,hi:30,h:"Enter the GDP growth percentage for the current reporting period.",b:"growth",step:"0.01"},
+{k:"gdp",n:"ii",l:"GDP Value (in Billions USD)",u:"USD billion",lo:0,hi:1e6,pos:1,h:"Enter the total GDP value converted to Billions USD to ensure standardized reporting across all Missions.",step:"0.01"},
+{k:"gdpPc",n:"iii",l:"GDP Per Capita (USD)",u:"USD per person",lo:0,hi:1e6,pos:1,h:"Enter the host country's GDP per capita value, standardized in USD.",step:"1"},
+{k:"pop",n:"iv",l:"Population (Million)",u:"million persons",lo:0,hi:2000,pos:1,h:"Enter the host country's total population in millions.",step:"0.01"},
+{k:"popG",n:"v",l:"Population Growth Rate (%)",u:"% per year",lo:-10,hi:10,h:"Enter the annual population growth rate percentage.",step:"0.01"},
+{k:"fx",n:"vi",l:"Currency Exchange Rate",u:"local currency per 1 USD",lo:0,hi:1e9,pos:1,h:"Enter the exchange rate of the local currency against 1 USD.",step:"0.0001"},
+{k:"infl",n:"vii",l:"Inflation Rate (%)",u:"%",lo:-100,hi:100,h:"Enter the current inflation rate percentage.",b:"infl",step:"0.01"},
+{k:"rate",n:"viii",l:"Interest Rate (Policy Rate) (%)",u:"%",lo:-10,hi:100,h:"Enter the central bank's current interest rate percentage.",b:"rate",step:"0.01"}];
+const BASIS={growth:"GDP growth basis",infl:"Inflation basis",rate:"Policy rate basis"};
+const BOPT=["Year-on-year (YoY)","Quarter-on-quarter (QoQ)","Annual average","Forecast / projection","End of period (policy rate)"];
+const SRC=["IMF","Central bank","National statistics office (NSO)","World Bank","Other"];
+const TL={ex:{t:"i) Top 5 Exports",h:"Select the top 5 export products (HS2 level) and enter the total value in Millions USD.",min:5,max:5,type:"hs",nm:"export"},
+im:{t:"ii) Top 5 Imports",h:"Select the top 5 import products (HS2 level) and enter the total value in Millions USD.",min:5,max:5,type:"hs",nm:"import"},
+gl:{t:"iii) Top 3 Trade Partners (Global)",h:"Select the top 3 global trading partners and enter the total trade volume in Millions USD.",min:3,max:3,type:"c",nm:"global partner"},
+as:{t:"iv) ASEAN Trade Partners (up to 10)",h:"List ALL the host country's ASEAN trading partners you can (up to 10), including Malaysia, with trade volume in Millions USD. Malaysia's rank is calculated automatically.",min:3,max:10,type:"a",nm:"ASEAN partner"}};
+const KP=[["local","Major Local Companies","Identify established domestic or state-owned enterprises that dominate the host country's core marketplace or heavily influence local commerce."],
+["mnc","Multinational Corporations (MNCs)","Identify foreign multinationals with a significant presence or influence in the host economy."],
+["my","Malaysian Players","Identify Malaysian companies, GLCs or agencies active in the host country. Pick from the suggestion list or type the name."],
+["watch","Strategic Watchlist","Identify companies or sectors the Mission recommends Malaysia monitor for opportunities or risk."],
+["assoc","Business Associations","Identify chambers of commerce or industry bodies relevant to Malaysian business engagement."]];
+const ALIAS={"petroliam nasional":"PETRONAS","petronas":"PETRONAS","malayan banking":"Maybank","maybank":"Maybank","cimb group":"CIMB","cimb":"CIMB","sime darby":"Sime Darby","dxn":"DXN","mpoc":"MPOC (Malaysian Palm Oil Council)","malaysian palm oil council":"MPOC (Malaysian Palm Oil Council)","tm":"Telekom Malaysia","telekom malaysia":"Telekom Malaysia","tenaga":"Tenaga Nasional","sapura":"Sapura Energy"};
+const MON=["Jan","Feb","Mar","Apr","May","Jun","Jul","Aug","Sep","Oct","Nov","Dec"];
+const YEARS=["2027","2026","2025","2024","2023","2022"];
+
+/* ---------- state ---------- */
+const emptyRows=n=>Array.from({length:n},()=>({k:"",v:"",s:""}));
+function blank(econ){const sa={};SA.forEach(x=>sa[x[0]]={text:"",tags:[]});const f={};MF.forEach(m=>f[m.k]={v:"",na:false,src:"",srcDate:""});
+ const L=(k)=>({rows:emptyRows(TL[k].min),na:false,src:"",srcDate:""});
+ const kp={};KP.forEach(x=>kp[x[0]]={rows:[{name:"",ind:"",proj:"",val:""}],na:false});
+ return{econ,status:"Draft",sample:false,note:"",reportType:"Country",city:"",scope:"",sa,macro:{period:{kind:"",year:"",month:""},basis:{growth:"",infl:"",rate:""},ccy:"",f},trade:{period:{kind:"",year:"",month:""},ex:L("ex"),im:L("im"),gl:L("gl"),as:L("as")},kp,log:[],updated:""};}
+function demo(){
+ const mk=(e)=>{const d=blank(e);d.sample=true;return d};
+ const o=mk("Oman"),su=mk("Sudan"),ye=mk("Yemen");
+ const P="[Sample] ";
+ o.sa.overall.text=P+"Real GDP growth is estimated at a moderate pace, supported by non-oil sectors, with hydrocarbon output managed within OPEC+ commitments. Fiscal consolidation continues.";
+ o.sa.implications.text=P+"Diversification and logistics projects open room for Malaysian services and halal food exporters; energy price swings affect the Gulf outlook.";
+ o.sa.regulatory.text=P+"New local-content and labour-localisation rules may raise compliance costs for foreign contractors. Customs documentation requirements were updated.";
+ o.sa.opportunities.text=P+"Port and free-zone developments, renewable energy, halal food and digital services are priority domains for partnership.";
+ o.sa.recs.text=P+"Brief MATRADE and MIDA on localisation rules; consider a halal food business mission in the second half of the year.";
+ o.sa.regulatory.tags=[{sector:"Construction and infrastructure",type:"Risk",urgency:"Medium",agency:"MIDA"}];
+ o.sa.recs.tags=[{sector:"Halal industry",type:"Recommendation",urgency:"Medium",agency:"MATRADE"}];
+ o.macro.period={kind:"Q1",year:"2026",month:""};o.macro.basis={growth:BOPT[0],infl:BOPT[0],rate:BOPT[4]};o.macro.ccy="OMR";
+ const mv={gdpGrowth:"1.7",gdp:"108.4",gdpPc:"20800",pop:"5.2",popG:"2.1",fx:"0.385",infl:"0.9",rate:"4.5"};
+ MF.forEach(m=>Object.assign(o.macro.f[m.k],{v:mv[m.k],src:"IMF",srcDate:"2026-04-15"}));
+ o.trade.period={kind:"Q1",year:"2026",month:""};
+ const set=(L,rows,src)=>{L.rows=rows.map(r=>({k:r[0],v:String(r[1]),s:r[2]||""}));L.src=src;L.srcDate="2026-05-10"};
+ set(o.trade.ex,[["27",9800],["39",1100],["29",950],["72",700],["76",620]],"National statistics office (NSO)");
+ set(o.trade.im,[["87",1500],["84",1300],["85",1100],["10",600],["30",420]],"National statistics office (NSO)");
+ set(o.trade.gl,[["China",6200],["United Arab Emirates",4100],["India",3300]],"National statistics office (NSO)");
+ set(o.trade.as,[["Singapore",520],["Thailand",410],["Malaysia",330],["Indonesia",290],["Vietnam",180]],"National statistics office (NSO)");
+ o.kp.local.rows=[{name:"Petroleum Development Oman",ind:"Oil and gas",proj:"",val:""}];
+ o.kp.mnc.rows=[{name:"Shell",ind:"Oil and gas",proj:"",val:""}];
+ o.kp.my.rows=[{name:"PETRONAS",ind:"Oil, gas and energy",proj:"Sample LNG supply cooperation",val:""},{name:"Maybank",ind:"Financial services / Islamic finance",proj:"",val:""}];
+ o.kp.watch.rows=[{name:"Duqm Special Economic Zone",ind:"Logistics and shipping",proj:"",val:""}];
+ o.kp.assoc.rows=[{name:"Oman Chamber of Commerce and Industry",ind:"Cross-sector",proj:"",val:""}];
+ su.sa.overall.text=P+"Conflict continues to depress output and disrupt supply chains; official statistics are limited.";
+ su.sa.implications.text=P+"Limited direct trade; humanitarian and port-access risks to monitor.";
+ su.macro.period={kind:"Annual",year:"2025",month:""};su.macro.basis.growth=BOPT[3];
+ su.macro.f.gdpGrowth={v:"-12,5",na:false,src:"IMF",srcDate:"2026-04-15"};su.macro.f.gdp={v:"28",na:false,src:"IMF",srcDate:"2026-04-15"};
+ ye.status="Action";ye.note="JPDP comment (sample): Please complete all tabs and state the period and source for the GDP figures.";
+ [o,su,ye].forEach(d=>d.updated=new Date().toISOString());
+ return{mission:MISSION,econs:["Oman","Sudan","Yemen"],area:"All",dossiers:{Oman:o,Sudan:su,Yemen:ye}};
+}
+function load(){try{const s=JSON.parse(localStorage.getItem(KEY));if(s&&s.dossiers)return s}catch(e){}return demo()}
+let S=load(),ui={view:"dash",tab:1,touched:new Set(),showAll:false,info:{},dirty:false,saveTxt:"Saved",cur:null,timer:null};
+const cur=()=>S.dossiers[ui.cur];
+const getP=(o,p)=>p.split(".").reduce((a,k)=>a==null?a:a[k],o);
+function setP(o,p,v){const ks=p.split(".");const l=ks.pop();ks.reduce((a,k)=>a[k],o)[l]=v}
+function save(){try{localStorage.setItem(KEY,JSON.stringify(S))}catch(e){}}
+function queueSave(){ui.dirty=true;setStatus("Saving…");clearTimeout(ui.timer);ui.timer=setTimeout(()=>{const d=cur();if(d)d.updated=new Date().toISOString();save();ui.dirty=false;setStatus("Saved at "+nowT()); },500)}
+function setStatus(t){ui.saveTxt=t;const e=$("#savestat");if(e)e.textContent=t}
+window.addEventListener("beforeunload",e=>{if(ui.dirty){e.preventDefault();e.returnValue=""}});
+function toast(t){const e=document.createElement("div");e.className="toast";e.setAttribute("role","status");e.textContent=t;document.body.appendChild(e);setTimeout(()=>e.remove(),3200)}
+
+/* ---------- helpers ---------- */
+function num(s){if(s==null)return null;s=String(s).trim().replace(/\s/g,"");if(s==="")return null;
+ if(/^[-+]?\d{1,3}((,\d{3}){2,}|(,\d{3})+\.\d+)$/.test(s))s=s.replace(/,/g,"");else if(/^[-+]?\d+,\d+$/.test(s))s=s.replace(",",".");
+ return /^[-+]?(\d+\.?\d*|\.\d+)$/.test(s)?parseFloat(s):NaN}
+function fixNum(s){const t=String(s).trim();if(/^[-+]?\d{1,3}((,\d{3}){2,}|(,\d{3})+\.\d+)$/.test(t))return t.replace(/,/g,"");if(/^[-+]?\d+,\d+$/.test(t))return t.replace(",",".");return s}
+const fmt=n=>n==null||isNaN(n)?"":Number(n).toLocaleString("en-US",{maximumFractionDigits:2});
+function periodLabel(p){if(!p.kind||!p.year)return "";if(p.kind==="Annual")return "Annual "+p.year;if(p.kind==="Month")return "Latest month ("+(p.month?MON[+p.month-1]+" ":"")+p.year+")";return p.kind+" "+p.year}
+function asAt(p){if(!p.kind||!p.year)return "";const y=+p.year;let d;
+ if(p.kind==="Annual")d=new Date(Date.UTC(y,11,31));else if(p.kind==="Month"){if(!p.month)return "";d=new Date(Date.UTC(y,+p.month,0))}else d=new Date(Date.UTC(y,+p.kind[1]*3,0));
+ return d.toISOString().slice(0,10)}
+function aseanInfo(d){const rows=d.trade.as.rows.map(r=>({c:r.k,v:num(r.v)})).filter(r=>r.c&&r.v!=null&&!isNaN(r.v)&&r.v>=0).sort((a,b)=>b.v-a.v);
+ const tot=rows.reduce((a,r)=>a+r.v,0);const my=rows.find(r=>r.c==="Malaysia");let rank=null;
+ if(my)rank=1+rows.filter(r=>r.v>my.v).length;
+ return{rows,tot,rank,n:rows.length,above:my?rows.filter(r=>r.v>my.v):[],my}}
+
+/* ---------- validation ---------- */
+function validate(d){
+ const miss=[],errs=[],warns=[],msgs={},units={1:new Set(),2:new Set(),3:new Set(),4:new Set()},bad={1:new Set(),2:new Set(),3:new Set(),4:new Set()};
+ const unit=(tab,u,m)=>{units[tab].add(u);if(m){miss.push(Object.assign({tab},m));bad[tab].add(u)}};
+ const M=(id,t,text,tab,label)=>{if(!msgs[id]||(t==="e"))msgs[id]={t,text};if(t==="e")errs.push({id,tab,label,text});if(t==="w")warns.push({id,tab,label,text})};
+ // tab1
+ if(d.reportType==="CG"){unit(1,"city",d.city.trim()?null:{id:"rt-city",label:"Report details: city / region"});unit(1,"scope",d.scope?null:{id:"rt-scope",label:"Report details: national or local figures?"});}
+ SA.forEach(s=>{const t=d.sa[s[0]].text.trim();unit(1,s[0],t?null:{id:"sa-"+s[0],label:"Strategic Assessment – "+s[1].replace(/^[ivx]+\) /,"")});
+  if(t&&t.length<40)M("sa-"+s[0],"w","Very short – please add specific developments, reasons and follow-up.",1,s[1]);
+  if(t.length>1500)M("sa-"+s[0],"w","Over the soft limit of ~1,500 characters – consider shortening (not blocked).",1,s[1])});
+ // tab2
+ const mp=d.macro.period;
+ unit(2,"period",mp.kind&&mp.year&&(mp.kind!=="Month"||mp.month)?null:{id:mp.kind?(mp.year?"mp-month":"mp-year"):"mp-kind",label:"Macro Snapshot: reporting period (type and year)"});
+ const na={};
+ MF.forEach(m=>{const f=d.macro.f[m.k];const id="m-"+m.k;na[m.k]=f.na;
+  if(m.b){unit(2,"b-"+m.b,f.na||d.macro.basis[m.b]?null:{id:"mb-"+m.b,label:"Macro Snapshot: "+BASIS[m.b]})}
+  if(f.na){units[2].add(m.k);return}
+  const raw=String(f.v).trim();
+  if(!raw){unit(2,m.k,{id,label:"Macro Snapshot – "+m.l+" (enter a value or tick 'Data not available')"});return}
+  units[2].add(m.k);const n=num(raw);
+  if(isNaN(n)){M(id,"e","Enter a number, e.g. 3.5 (a comma decimal such as 3,5 will be converted).",2,m.l);bad[2].add(m.k);return}
+  if(m.pos&&n<=0)M(id,"w","Must be greater than zero.",2,m.l);
+  else if(n<m.lo||n>m.hi)M(id,"w","Outside the plausible range ("+fmt(m.lo)+" to "+fmt(m.hi)+" "+m.u.split(" ")[0]+") – please check the value and unit.",2,m.l);
+  if(!f.src)M("m-"+m.k+"-src","i","",2,m.l)});
+ const g=num(d.macro.f.gdp.v),pc=num(d.macro.f.gdpPc.v),pp=num(d.macro.f.pop.v);
+ if(!na.gdp&&!na.gdpPc&&!na.pop&&[g,pc,pp].every(x=>x!=null&&!isNaN(x)&&x>0)){
+  const calc=g*1000/pp,r=pc/calc;
+  if(r<0.7||r>1.3){let hint="";const alts=[["GDP may be in USD million instead of billion – divide it by 1,000",g/1000,pp],["GDP may be in USD trillion – multiply by 1,000",g*1000,pp],["population may be in thousands instead of millions",g,pp/1000],["population may be in persons/billions – check the unit",g,pp*1000]];
+   for(const a of alts){const c=a[1]*1000/a[2];if(pc/c>=0.7&&pc/c<=1.3){hint=" Hint: "+a[0]+".";break}}
+   const txt="Cross-check: GDP ÷ population = about USD "+fmt(calc)+" per person, but GDP per capita entered is USD "+fmt(pc)+" ("+Math.round(Math.abs(r-1)*100)+"% off)."+hint+" Did you enter millions instead of billions? GDP is in USD billion; population in million persons.";
+   M("m-gdpPc","w",txt,2,"GDP per capita");M("m-gdp","w","See the cross-check warning on GDP per capita.",2,"GDP value")}
+  else M("m-gdpPc","i","Cross-check OK: GDP ÷ population ≈ GDP per capita (within 30%).",2,"GDP per capita")}
+ // tab3
+ const tp=d.trade.period;
+ unit(3,"period",tp.kind&&tp.year&&(tp.kind!=="Month"||tp.month)?null:{id:tp.kind?(tp.year?"tp-month":"tp-year"):"tp-kind",label:"Trade Profile: data period (type and year)"});
+ Object.keys(TL).forEach(k=>{const L=d.trade[k],T=TL[k];if(L.na){units[3].add(k);return}
+  let filled=0,first=null;const seen={};
+  L.rows.forEach((r,i)=>{const id=`${k}-${i}`,v=String(r.v).trim(),has=r.k||v;
+   if(!has){if(first==null)first=i;return}
+   if(!r.k){unit(3,k,{id:id+"-k",label:`${T.t.replace(/^[iv]+\) /,"")} row ${i+1}: ${T.type==="hs"?"HS chapter":"country"}`});return}
+   if(!v){unit(3,k,{id:id+"-v",label:`${T.t.replace(/^[iv]+\) /,"")} row ${i+1}: value (USD million)`});return}
+   const n=num(v);if(isNaN(n)||n<0){M(id+"-v","e","Enter a number ≥ 0 in USD million.",3,"Trade value");bad[3].add(k);return}
+   if(T.type!=="hs"&&!COUNTRIES.includes(r.k)){M(id+"-k","e","Pick a country from the list.",3,"Country");bad[3].add(k);return}
+   if(T.type==="a"&&!ASEAN.includes(r.k)){M(id+"-k","e","Not an ASEAN member – pick from the list.",3,"ASEAN partner");bad[3].add(k);return}
+   if(seen[r.k]!=null){M(id+"-k","e","Duplicate – already listed in row "+(seen[r.k]+1)+".",3,"Duplicate");bad[3].add(k);return}
+   seen[r.k]=i;filled++;
+   const sh=num(r.s);if(r.s!==""&&r.s!=null&&(isNaN(sh)||sh<0||sh>100))M(id+"-s","w","Share should be between 0 and 100%.",3,"Share")});
+  units[3].add(k);
+  if(filled<T.min&&!bad[3].has(k)){const idx=first!=null?first:0;unit(3,k,{id:`${k}-${idx}-${T.type==="hs"?"k":"k"}`,label:`${T.t.replace(/^[iv]+\) /,"")}: ${filled} of ${T.min} entries (add more or tick 'Data not available')`})}
+ });
+ // tab4
+ KP.forEach(x=>{const C=d.kp[x[0]];if(C.na){units[4].add(x[0]);return}
+  const rows=C.rows.filter(r=>r.name.trim());
+  if(!rows.length){unit(4,x[0],{id:`kp-${x[0]}-0-name`,label:"Key Players – "+x[1]+": add at least one entry or tick 'None / not applicable'"});return}
+  units[4].add(x[0]);const seen={};
+  C.rows.forEach((r,i)=>{if(!r.name.trim())return;const key=r.name.trim().toLowerCase();
+   if(!r.ind){unit(4,x[0],{id:`kp-${x[0]}-${i}-ind`,label:`Key Players – ${x[1]} row ${i+1}: ${x[0]==="my"?"sector":"industry"}`})}
+   if(seen[key]!=null){M(`kp-${x[0]}-${i}-name`,"e","Duplicate of row "+(seen[key]+1)+".",4,"Duplicate");bad[4].add(x[0])}else seen[key]=i;
+   if(r.val&&isNaN(num(r.val))){M(`kp-${x[0]}-${i}-val`,"e","Enter a number (USD million).",4,"Value");bad[4].add(x[0])}})});
+ // required messages shown only when touched
+ miss.forEach(m=>{if(!msgs[m.id])msgs[m.id]={t:"e",text:"Required – "+(m.label.split("–").pop().trim()),req:1}});
+ const prog={};let tot=0,ok=0;[1,2,3,4].forEach(t=>{const T=units[t].size,B=bad[t].size;prog[t]={t:T,ok:Math.max(0,T-B)};tot+=T;ok+=prog[t].ok});
+ const nosrc=MF.filter(m=>!d.macro.f[m.k].na&&String(d.macro.f[m.k].v).trim()&&!d.macro.f[m.k].src).length;
+ return{miss,errs,warns:warns.filter(w=>!/^See the/.test(w.text)),msgs,prog,pct:tot?Math.round(ok/tot*100):0,nosrc};
+}
+
+/* ---------- views ---------- */
+function statusChip(s){return `<span class="chip s-${s}">${STAT[s]}</span>`}
+function renderDash(){
+ const ds=S.econs.map(e=>S.dossiers[e]);const sel=S.area==="All"?ds:ds.filter(d=>d.econ===S.area);
+ const cnt=s=>sel.filter(d=>d.status===s).length;
+ let h=`<div class="wrap"><h1>Economic Dossier Dashboard</h1><div class="hint">${esc(MISSION)} · ${EMAIL} · Phase: 2026 (Jan–June) · <b>sample mission data</b></div>
+ <div class="card"><h2>Malaysia's Current Economic Data <span class="chip s-Pending">sample</span></h2><div class="grid g4">
+ <div class="stat"><b>Jan – July 2026</b><span>Period</span></div><div class="stat"><b>5.40 %</b><span>GDP Growth</span></div><div class="stat"><b>330,803.10 km²</b><span>Total Land Size</span></div><div class="stat"><b>34.2 Mil</b><span>Total Population</span></div></div></div>
+ <div class="card"><h2 id="areas-h">Areas Covered</h2><div class="hint">Switch between the economies covered by this mission. Each economy has its own dossier.</div>
+ <div class="areas" role="group" aria-labelledby="areas-h">${["All",...S.econs].map(a=>`<button data-area="${esc(a)}" aria-pressed="${S.area===a}">${a==="All"?"All areas":esc(a)}</button>`).join("")}</div></div>
+ <div class="grid g4" aria-live="polite"><div class="stat"><b>${sel.length}</b><span>Total Reports</span></div><div class="stat"><b>${cnt("Draft")}</b><span>Draft</span></div><div class="stat"><b>${cnt("Pending")}</b><span>Pending Approval</span></div><div class="stat"><b>${cnt("Approved")}</b><span>Approved</span></div></div>
+ <div class="grid g4" style="margin-top:12px"><div class="stat" style="border-left-color:#b3261e"><b>${cnt("Action")}</b><span>Requires Action</span></div></div>
+ <div class="card"><h2>Dossiers</h2><div class="tablewrap"><table><thead><tr><th>Economy</th><th>Report type</th><th>Status</th><th>Completion</th><th>Last updated</th><th><span class="sr">Action</span></th></tr></thead><tbody>
+ ${sel.map(d=>{const v=validate(d);return `<tr><td><b>${esc(d.econ)}</b>${d.sample?' <span class="chip s-Pending">sample</span>':""}</td><td>${d.reportType==="CG"?"Consulate-General"+(d.city?" – "+esc(d.city):""):"Country-level"}</td><td>${statusChip(d.status)}</td><td style="min-width:110px">${v.pct}%<div class="bar" role="progressbar" aria-valuenow="${v.pct}" aria-valuemin="0" aria-valuemax="100" aria-label="Completion for ${esc(d.econ)}"><i style="width:${v.pct}%"></i></div></td><td>${d.updated?esc(d.updated.slice(0,16).replace("T"," ")):"–"}</td><td><button class="pri sm" data-open="${esc(d.econ)}" aria-label="Open dossier for ${esc(d.econ)}">Open</button></td></tr>`}).join("")}</tbody></table></div>
+ ${sel.some(d=>d.status==="Action")?'<div class="alert e" role="alert"><b>Requires action:</b> '+esc(sel.find(d=>d.status==="Action").note)+"</div>":""}
+ <div class="actions"><button class="danger" data-act="reset">Reset demo data</button><span class="hint">Resets this browser's saved sample data. Nothing is sent anywhere.</span></div></div></div>`;
+ $("#app").innerHTML=h}
+
+const fieldMsg=id=>`<div class="msg" id="msg-${id}" role="status" aria-live="polite"></div>`;
+function fg(id,label,inner,hint,req){return `<div class="fg"><label for="${id}">${label}${req?'<span class="req" aria-hidden="true">*</span><span class="sr"> (required)</span>':""}</label>${hint?`<div class="hint" id="h-${id}">${hint}</div>`:""}${inner}${fieldMsg(id)}</div>`}
+const attrs=(id,path,label)=>`id="${id}" data-path="${path}" data-label="${esc(label)}"`;
+function inp(id,path,val,label,o={}){return `<input type="text" ${attrs(id,path,label)} value="${esc(val)}" ${o.num?`inputmode="decimal" data-num="1" autocomplete="off" data-min="${o.lo}" data-max="${o.hi}" data-step="${o.step}"`:""} ${o.list?`list="${o.list}" autocomplete="off"`:""} ${o.dupe?`data-dupe="${o.dupe}" data-i="${o.i}"`:""} ${o.cls?`data-kind="${o.cls}"`:""} ${o.ro?"readonly":""} aria-describedby="${o.hint?"h-"+id+" ":""}msg-${id}" ${o.ph?`placeholder="${esc(o.ph)}"`:""}>`}
+function sel(id,path,val,opts,label,o={}){return `<select ${attrs(id,path,label)} ${o.rr?'data-rerender="1"':""} ${o.dupe?`data-dupe="${o.dupe}" data-i="${o.i}"`:""} aria-describedby="msg-${id}"><option value="">– select –</option>${opts.map(x=>{const v=Array.isArray(x)?x[0]:x,t=Array.isArray(x)?x[1]:x;return `<option value="${esc(v)}"${v===val?" selected":""}>${esc(t)}</option>`}).join("")}</select>`}
+function numField(id,path,f,m,d){return `<div class="with-suf">${inp(id,path+".v",f.v,m.l,{num:1,lo:m.lo,hi:m.hi,step:m.step,hint:1})}<span class="suf" id="u-${id}">${esc(m.u)}</span></div>`}
+
+function periodCtl(pre,path,p,what){
+ const kinds=[["Q1","Q1 (Jan–Mar)"],["Q2","Q2 (Apr–Jun)"],["Q3","Q3 (Jul–Sep)"],["Q4","Q4 (Oct–Dec)"],["Annual","Annual (full year)"],["Month","Latest month"]];
+ return `<fieldset class="ind" style="margin:12px 0"><legend class="lbl">${what}<span class="req" aria-hidden="true">*</span><span class="sr"> (required)</span></legend><div class="grid g4" style="grid-template-columns:repeat(auto-fit,minmax(150px,1fr))">
+ <div class="fg" style="margin:0"><label for="${pre}-kind">Period type</label>${sel(pre+"-kind",path+".kind",p.kind,kinds,what+" period type",{rr:1})}${fieldMsg(pre+"-kind")}</div>
+ <div class="fg" style="margin:0"><label for="${pre}-year">Year</label>${sel(pre+"-year",path+".year",p.year,YEARS,what+" year")}${fieldMsg(pre+"-year")}</div>
+ ${p.kind==="Month"?`<div class="fg" style="margin:0"><label for="${pre}-month">Month</label>${sel(pre+"-month",path+".month",p.month,MON.map((m,i)=>[String(i+1),m]),what+" month")}${fieldMsg(pre+"-month")}</div>`:""}
+ <div class="fg" style="margin:0"><label for="${pre}-asat">Data as at</label><input type="text" id="${pre}-asat" readonly value="${esc(asAt(p))}" placeholder="auto from period" aria-describedby="h-${pre}-asat"><div class="hint" id="h-${pre}-asat">Read-only, derived from the period.</div></div></div>
+ <div class="hint" id="${pre}-lbl" style="margin-top:6px">${p.kind&&p.year?"Selected: <b>"+esc(periodLabel(p))+"</b>":"Choose the period the figures refer to. There is no default."}</div></fieldset>`}
+
+function tab1(d){let h=`<h2>Strategic Assessment and Emerging Trends</h2><p class="hint">Focus on developments during the current reporting period rather than repeating historical background. Where possible, explain what has changed, why it matters, and whether it requires further monitoring or follow-up.</p>
+ <div class="card"><h3 style="margin-top:0">Report details</h3><div class="grid g2">
+ <div class="fg">${`<label for="rt-type">Report type<span class="req" aria-hidden="true">*</span><span class="sr"> (required)</span></label>`}${sel("rt-type","reportType",d.reportType,[["Country","Country-level"],["CG","Consulate-General (sub-national)"]],"Report type",{rr:1}).replace('<option value="">– select –</option>',"")}</div>
+ ${d.reportType==="CG"?fg("rt-city","City / region",inp("rt-city","city",d.city,"City / region",{}),"e.g. the consular district covered.",1):""}</div>
+ ${d.reportType==="CG"?`<div class="alert" role="note"><b>Consulate-General report:</b> please state whether the figures in this dossier are <b>national</b> or <b>local (city/region)</b>.</div>`+fg("rt-scope","Figures in this report are",sel("rt-scope","scope",d.scope,[["National","National figures"],["Local","Local (city / region) figures"]],"Figures scope").replace('<option value="">– select –</option>','<option value="">– select –</option>'),"",1):""}</div>`;
+ SA.forEach(s=>{const o=d.sa[s[0]];h+=`<div class="card"><div class="fg" style="margin-top:0"><label for="sa-${s[0]}">${s[1]}<span class="req" aria-hidden="true">*</span><span class="sr"> (required)</span></label><div class="hint" id="h-sa-${s[0]}">${s[2]}</div>
+ <textarea ${attrs("sa-"+s[0],"sa."+s[0]+".text",s[1])} aria-describedby="h-sa-${s[0]} cnt-${s[0]} msg-sa-${s[0]}" aria-required="true">${esc(o.text)}</textarea>
+ <div class="cnt" id="cnt-${s[0]}" aria-live="off">${o.text.length} / 1500 characters (soft limit)</div>${fieldMsg("sa-"+s[0])}</div>
+ <div class="lbl" style="font-size:14px">Structured tags (optional) <span class="hint">– add one tag per risk, opportunity or recommendation so JPDP can sort and count them</span></div>
+ ${o.tags.map((t,i)=>`<div class="tag"><div><label class="sr" for="tg-${s[0]}-${i}-sector">Sector, item ${i+1}</label>${sel(`tg-${s[0]}-${i}-sector`,`sa.${s[0]}.tags.${i}.sector`,t.sector,SECTORS,"Sector")}</div><div><label class="sr" for="tg-${s[0]}-${i}-type">Type, item ${i+1}</label>${sel(`tg-${s[0]}-${i}-type`,`sa.${s[0]}.tags.${i}.type`,t.type,["Risk","Opportunity","Recommendation","Other"],"Type")}</div><div><label class="sr" for="tg-${s[0]}-${i}-urg">Urgency, item ${i+1}</label>${sel(`tg-${s[0]}-${i}-urg`,`sa.${s[0]}.tags.${i}.urgency`,t.urgency,["High","Medium","Low"],"Urgency")}</div><div><label class="sr" for="tg-${s[0]}-${i}-ag">Agency to action, item ${i+1}</label>${sel(`tg-${s[0]}-${i}-ag`,`sa.${s[0]}.tags.${i}.agency`,t.agency,AGENCIES,"Agency to action")}</div><button class="sm danger" data-act="rmrow" data-list="sa.${s[0]}.tags" data-i="${i}" aria-label="Remove tag ${i+1} from ${esc(s[1])}">✕ Remove</button></div>`).join("")}
+ <button class="sm" data-act="addtag" data-key="${s[0]}">＋ Add tag (sector · type · urgency · agency)</button>
+ ${o.tags.length?'<div class="hint">Order of each tag: sector, type, urgency, agency to action.</div>':""}</div>`});
+ return h}
+
+function tab2(d){const m=d.macro;let h=`<h2>Macro Snapshot</h2>${periodCtl("mp","macro.period",m.period,"Reporting Period")}
+ <div class="alert" role="note">Enter figures for the period above. Tick <b>Data not available</b> if a figure genuinely does not exist, so blanks are deliberate. Comma decimals (3,5) are converted automatically.</div>`;
+ MF.forEach(x=>{const f=m.f[x.k],id="m-"+x.k;
+  h+=`<div class="ind"><div class="fg" style="margin-top:0"><label for="${id}">${x.n}) ${x.l}<span class="req" aria-hidden="true">*</span><span class="sr"> (required unless data not available)</span></label><div class="hint" id="h-${id}">${x.h}</div>
+  ${x.k==="fx"?`<div class="grid g2" style="margin-bottom:6px"><div><label for="m-ccy" class="hint">Currency code (e.g. OMR)</label>${inp("m-ccy","macro.ccy",m.ccy,"Currency code",{})}</div></div>`:""}
+  ${x.k==="fx"?`<div class="with-suf"><span class="suf" style="border-left:1px solid #8793a6;border-radius:6px 0 0 6px">1 USD =</span><input type="text" ${attrs(id,"macro.f."+x.k+".v",x.l)} value="${esc(f.v)}" inputmode="decimal" data-num="1" autocomplete="off" aria-describedby="h-${id} msg-${id}" style="border-radius:0"><span class="suf">${m.ccy?esc(m.ccy):"local currency"}</span></div>`:numField(id,"macro.f."+x.k,f,x,d)}
+  ${fieldMsg(id)}<label class="na"><input type="checkbox" data-path="macro.f.${x.k}.na" data-label="${esc(x.l)} – data not available" id="${id}-na" ${f.na?"checked":""}> Data not available</label></div>
+  <div class="cols">${x.b?`<div><label for="mb-${x.b}" class="hint">${BASIS[x.b]}<span class="req" aria-hidden="true">*</span></label>${sel("mb-"+x.b,"macro.basis."+x.b,m.basis[x.b],BOPT,BASIS[x.b])}${fieldMsg("mb-"+x.b)}</div>`:"<div></div>"}
+  <div><label for="${id}-srcsel" class="hint">Source</label>${sel(id+"-srcsel","macro.f."+x.k+".src",f.src,SRC,x.l+" source").replace(`id="${id}-srcsel"`,`id="${id}-src"`)}</div>
+  <div><label for="${id}-sd" class="hint">Source date</label><input type="date" ${attrs(id+"-sd","macro.f."+x.k+".srcDate",x.l+" source date")} value="${esc(f.srcDate)}" style="min-height:40px;width:100%;padding:8px;border:1px solid #8793a6;border-radius:6px"></div><div></div></div></div>`});
+ return h.replace(/<label for="m-(\w+)-srcsel"/g,'<label for="m-$1-src"')}
+
+function rowHtml(k,i,r,d){const T=TL[k],p=`trade.${k}.rows.${i}`,id=`${k}-${i}`;
+ let ctl;if(T.type==="hs")ctl=sel(id+"-k",p+".k",r.k,HS.map(x=>[x[0],x[0]+" – "+x[1]]),T.nm+" HS chapter, row "+(i+1),{dupe:`trade.${k}.rows`,i});
+ else ctl=inp(id+"-k",p+".k",r.k,T.nm+" country",{list:T.type==="a"?"dl-asean":"dl-country",dupe:`trade.${k}.rows`,i,cls:"country",ph:T.type==="a"?"Type or pick an ASEAN country":"Type to search country…"});
+ const mal=T.type==="a"&&r.k==="Malaysia";
+ return `<div class="row ${k==="as"?"c2":"c3"}${mal?" my":""}"><div><label class="lbl" for="${id}-k"><span class="rn">${i+1}.</span> ${T.type==="hs"?"HS2 chapter":"Country"}</label>${ctl}${fieldMsg(id+"-k")}</div>
+ <div><label class="lbl" for="${id}-v">Value</label><div class="with-suf">${inp(id+"-v",p+".v",r.v,T.nm+" value row "+(i+1),{num:1,lo:0,hi:1e9,step:1})}<span class="suf">USD million</span></div>${fieldMsg(id+"-v")}</div>
+ ${k!=="as"?`<div><label class="lbl" for="${id}-s">Share of total <span class="hint">(optional)</span></label><div class="with-suf">${inp(id+"-s",p+".s",r.s||"",T.nm+" share row "+(i+1),{num:1,lo:0,hi:100,step:"0.1"})}<span class="suf">%</span></div>${fieldMsg(id+"-s")}</div>`:""}
+ <div style="align-self:end"><button class="sm danger" data-act="rmrow" data-list="trade.${k}.rows" data-i="${i}" aria-label="Remove ${T.nm} row ${i+1}">✕ Remove</button></div></div>`}
+
+function aseanBlock(d){const a=aseanInfo(d);let h=`<h3>Malaysia's rank among the host's ASEAN partners (calculated)</h3>`;
+ if(!a.n)return h+`<div class="alert" role="status">Enter ASEAN partners with values to see the ranking.</div>`;
+ h+=a.my?`<div class="alert o" role="status"><b>Malaysia rank: No. ${a.rank}</b> of ${a.n} ASEAN partners listed${a.rank===1?" – Malaysia is the top ASEAN partner.":"."}</div>`:`<div class="alert" role="status"><b>Malaysia is not in the list.</b> Add Malaysia with its trade value to get a rank (or Malaysia has no recorded trade).</div>`;
+ h+=`<div class="tablewrap"><table><caption class="sr">ASEAN partners ranked by trade value</caption><thead><tr><th>Rank</th><th>Country</th><th>Trade (USD million)</th><th>Share of listed ASEAN trade</th></tr></thead><tbody>`+a.rows.map((r,i)=>`<tr class="${r.c==="Malaysia"?"my":""}"><td>${1+a.rows.filter(x=>x.v>r.v).length}</td><td>${esc(r.c)}${r.c==="Malaysia"?" ★":""}</td><td>${fmt(r.v)}</td><td>${a.tot?(r.v/a.tot*100).toFixed(1):0}%</td></tr>`).join("")+`</tbody></table></div>`;
+ if(a.my)h+=`<p><b>Competitor list (ASEAN partners ahead of Malaysia):</b> ${a.above.length?a.above.map(r=>esc(r.c)).join(", "):"none – Malaysia leads"}</p>`;
+ return h}
+
+function tab3(d){const t=d.trade;let h=`<h2>Trade Profile</h2><p class="hint">Please fill in the trade details for this profile. Select the period that represents the most recent published trade data available from the host country.</p>${periodCtl("tp","trade.period",t.period,"Data As Of (trade data period)")}`;
+ Object.keys(TL).forEach(k=>{const T=TL[k],L=t[k];h+=`<div class="card" id="list-${k}"><h3 style="margin-top:0">${T.t}<span class="req" aria-hidden="true">*</span></h3><div class="hint">${T.h}</div>
+ <label class="na"><input type="checkbox" data-path="trade.${k}.na" data-rerender="1" id="${k}-na" data-label="${T.t} – data not available" ${L.na?"checked":""}> Data not available for this list</label>
+ ${L.na?"":L.rows.map((r,i)=>rowHtml(k,i,r,d)).join("")+`<button class="sm" data-act="addrow" data-key="${k}" ${L.rows.length>=T.max?"disabled":""} aria-label="Add ${T.nm} row">＋ Add row${L.rows.length>=T.max?" (maximum reached)":""}</button>`}
+ <div class="grid g2" style="margin-top:8px"><div><label class="hint" for="${k}-src">Source</label>${sel(k+"-src","trade."+k+".src",L.src,SRC,T.t+" source")}</div><div><label class="hint" for="${k}-sd">Source date</label><input type="date" ${attrs(k+"-sd","trade."+k+".srcDate",T.t+" source date")} value="${esc(L.srcDate)}" style="min-height:40px;width:100%;padding:8px;border:1px solid #8793a6;border-radius:6px"></div></div>
+ ${k==="as"?`<div id="asean-derived" aria-live="polite">${aseanBlock(d)}</div>`:""}</div>`});
+ return h}
+
+function tab4(d){let h=`<h2>Key Players</h2><p class="hint">List the key companies and organisations the Mission considers most important in each category (up to 5 per list). Industry is required for every name; tick “None / not applicable” if a list is genuinely empty.</p>`;
+ KP.forEach(x=>{const C=d.kp[x[0]],my=x[0]==="my";h+=`<div class="card"><h3 style="margin-top:0">${x[1]}<span class="req" aria-hidden="true">*</span></h3><div class="hint">${x[2]}</div>
+ <label class="na"><input type="checkbox" data-path="kp.${x[0]}.na" data-rerender="1" id="kp-${x[0]}-na" data-label="${x[1]} – none" ${C.na?"checked":""}> None / not applicable</label>`;
+ if(!C.na){C.rows.forEach((r,i)=>{const id=`kp-${x[0]}-${i}`,p=`kp.${x[0]}.rows.${i}`;
+  h+=`<div class="row ${my?"cp":"c2"}"><div><label class="lbl" for="${id}-name"><span class="rn">${i+1}.</span> ${my?"Company (Malaysian)":"Name"}</label>${inp(id+"-name",p+".name",r.name,x[1]+" name row "+(i+1),{list:my?"dl-my":"",cls:my?"mycompany":"",ph:my?"Type to search, e.g. PETRONAS":""})}${fieldMsg(id+"-name")}</div>
+  <div><label class="lbl" for="${id}-ind">${my?"Sector":"Industry"}</label>${my?sel(id+"-ind",p+".ind",r.ind,SECTORS,"Sector row "+(i+1)):inp(id+"-ind",p+".ind",r.ind,x[1]+" industry row "+(i+1),{})}${fieldMsg(id+"-ind")}</div>
+  ${my?`<div><label class="lbl" for="${id}-proj">Project <span class="hint">(optional)</span></label>${inp(id+"-proj",p+".proj",r.proj,"Project row "+(i+1),{})}</div><div><label class="lbl" for="${id}-val">Value <span class="hint">(optional)</span></label><div class="with-suf">${inp(id+"-val",p+".val",r.val,"Project value row "+(i+1),{num:1,lo:0,hi:1e9,step:1})}<span class="suf">USD m</span></div>${fieldMsg(id+"-val")}</div>`:""}
+  <div style="align-self:end"><button class="sm danger" data-act="rmrow" data-list="${p.replace(/\.\d+$/,"")}" data-i="${i}" aria-label="Remove ${esc(x[1])} row ${i+1}">✕ Remove</button></div></div>`});
+  h+=`<button class="sm" data-act="addkp" data-key="${x[0]}" ${C.rows.length>=5?"disabled":""}>＋ Add ${my?"company":"entry"}${C.rows.length>=5?" (maximum 5)":""}</button>`}
+ h+="</div>"});return h}
+
+function completeness(d,v){let h=`<div class="card" id="complete"><h2>Completeness check</h2>`;
+ if(!v.miss.length&&!v.errs.length)h+=`<div class="alert o" role="status">✔ All required fields are complete${v.warns.length?" ("+v.warns.length+" item(s) to review below)":""}. You can submit.</div>`;
+ else{h+=`<div class="alert e" role="alert"><b>${v.miss.length+v.errs.length} item(s) need attention before you can submit.</b></div><ul>`+v.miss.map(m=>`<li><a href="#${m.id}" data-jump="${m.id}" data-tab="${m.tab}">${esc(m.label)}</a> <small>(tab ${m.tab})</small></li>`).join("")+v.errs.map(m=>`<li><a href="#${m.id}" data-jump="${m.id}" data-tab="${m.tab}">Fix: ${esc(m.label)} – ${esc(m.text)}</a> <small>(tab ${m.tab})</small></li>`).join("")+"</ul>"}
+ if(v.warns.length)h+=`<h3>To review (not blocking)</h3><ul>`+v.warns.map(m=>`<li><a href="#${m.id}" data-jump="${m.id}" data-tab="${m.tab}">${esc(m.label)}: ${esc(m.text)}</a></li>`).join("")+"</ul>";
+ if(v.nosrc)h+=`<p class="hint">${v.nosrc} macro indicator(s) have no source stated (recommended).</p>`;
+ return h+"</div>"}
+
+function previewDoc(d){const m=d.macro,t=d.trade,a=aseanInfo(d);
+ const mrow=x=>{const f=m.f[x.k];return `<tr><td>${esc(x.l)}</td><td>${f.na?"<i>Data not available</i>":esc(f.v===""?"–":fmt(num(f.v))||f.v)+" "+esc(x.k==="fx"?"per 1 USD"+(m.ccy?" ("+m.ccy+")":""):x.u)}</td><td>${esc(x.b?m.basis[x.b]||"–":"")}</td><td>${esc(f.src||"–")}${f.srcDate?" ("+esc(f.srcDate)+")":""}</td></tr>`};
+ const trows=(k)=>{const L=t[k];if(L.na)return "<p><i>Data not available</i></p>";const rows=L.rows.filter(r=>r.k||r.v);return `<table><thead><tr><th>#</th><th>${TL[k].type==="hs"?"HS2 chapter":"Country"}</th><th>USD million</th>${k!=="as"?"<th>Share</th>":""}</tr></thead><tbody>`+rows.map((r,i)=>`<tr class="${k==="as"&&r.k==="Malaysia"?"my":""}"><td>${i+1}</td><td>${TL[k].type==="hs"?esc(r.k?r.k+" – "+(HS.find(x=>x[0]===r.k)||["",""])[1]:"–"):esc(r.k||"–")}</td><td>${esc(r.v?fmt(num(r.v))||r.v:"–")}</td>${k!=="as"?`<td>${r.s?esc(r.s)+"%":"–"}</td>`:""}</tr>`).join("")+`</tbody></table><div class="hint">Source: ${esc(L.src||"not stated")}${L.srcDate?" ("+esc(L.srcDate)+")":""}</div>`};
+ let h=`<div class="doc" id="doc"><div class="wm">PROTOTYPE – not connected to EDMS${d.sample?" · SAMPLE DATA":""}</div><h1>Economic Dossier: ${esc(d.econ)}</h1>
+ <table><tr><td>Mission</td><td>${esc(MISSION)}</td><td>Phase</td><td>2026 (Jan–June)</td></tr><tr><td>Report type</td><td>${d.reportType==="CG"?"Consulate-General – "+esc(d.city||"?")+" ("+esc(d.scope||"scope not stated")+" figures)":"Country-level"}</td><td>Status</td><td>${STAT[d.status]}</td></tr><tr><td>Last updated</td><td>${esc(d.updated?d.updated.slice(0,16).replace("T"," "):"–")}</td><td>Printed</td><td>${today()}</td></tr></table>
+ <h2>1. Strategic Assessment</h2>`;
+ SA.forEach(s=>{const o=d.sa[s[0]];h+=`<div class="blk"><b>${esc(s[1])}</b><p>${esc(o.text||"– not completed –")}</p>${o.tags.length?"<div class=hint>Tags: "+o.tags.filter(x=>x.sector||x.type).map(x=>esc([x.type,x.sector,x.urgency&&"urgency "+x.urgency,x.agency&&"→ "+x.agency].filter(Boolean).join(" · "))).join(" | ")+"</div>":""}</div>`});
+ h+=`<h2>2. Macro Snapshot – ${esc(periodLabel(m.period)||"period not set")} <small>(data as at ${esc(asAt(m.period)||"–")})</small></h2><table><thead><tr><th>Indicator</th><th>Value</th><th>Basis</th><th>Source (date)</th></tr></thead><tbody>${MF.map(mrow).join("")}</tbody></table>
+ <h2>3. Trade Profile – ${esc(periodLabel(t.period)||"period not set")} <small>(data as at ${esc(asAt(t.period)||"–")})</small></h2>`;
+ Object.keys(TL).forEach(k=>{h+=`<div class="blk"><b>${esc(TL[k].t)}</b>${trows(k)}</div>`});
+ h+=`<div class="blk"><b>Malaysia rank among ASEAN partners:</b> ${a.my?"No. "+a.rank+" of "+a.n:"not listed"}${a.my?" · Competitors ahead: "+(a.above.map(r=>esc(r.c)).join(", ")||"none"):""}</div>
+ <h2>4. Key Players</h2>`;
+ KP.forEach(x=>{const C=d.kp[x[0]];h+=`<div class="blk"><b>${x[1]}</b>`+(C.na?"<p><i>None / not applicable</i></p>":"<ul>"+C.rows.filter(r=>r.name).map(r=>`<li>${esc(r.name)} – ${esc(r.ind||"–")}${r.proj?"; project: "+esc(r.proj):""}${r.val?"; value USD "+esc(r.val)+" m":""}</li>`).join("")+"</ul>")+"</div>"});
+ h+=`<h2>Change log (last 15)</h2>`+(d.log.length?`<table><thead><tr><th>When</th><th>Field</th><th>Change</th></tr></thead><tbody>`+d.log.slice(-15).reverse().map(l=>`<tr><td>${esc(l.t.slice(0,19).replace("T"," "))}</td><td>${esc(l.f)}</td><td>${esc(l.c)}</td></tr>`).join("")+"</tbody></table>":"<p>No changes recorded yet.</p>")+`<p class="hint">Prototype only – no real data. Generated in the browser.</p></div>`;
+ return h}
+
+function tab5(d){const v=validate(d);return `<h2>View and Send</h2><div class="hint">Review the dossier, print it, download a PDF, or submit. Submission here only changes the status in your browser – nothing is sent to EDMS.</div>
+ ${d.status==="Pending"?'<div class="alert o" role="status">This dossier is <b>Pending approval</b> (submitted in the prototype).</div>':""}
+ <div id="completeBox" class="no-print">${completeness(d,v)}</div>
+ <div class="actions no-print"><button class="pri" data-act="print">🖨 Print</button><button data-act="print">⬇ Download as PDF</button><button data-act="json">Export JSON</button><button data-act="csv">Export CSV</button><button class="gold" data-act="submit">Submit to JPDP</button>${d.status==="Pending"?'<button data-act="withdraw">Withdraw (back to Draft)</button>':""}</div>
+ <div class="hint no-print">“Download as PDF”: choose “Save as PDF” in the print dialog. JSON/CSV export is shown here to demonstrate that the real system could provide structured data to JPDP.</div>${previewDoc(d)}`}
+
+function renderForm(){const d=cur(),v=validate(d);
+ const tabs=[[1,"Strategic Assessment"],[2,"Macro Snapshot"],[3,"Trade Profile"],[4,"Key Players"],[5,"View and Send"]];
+ $("#app").innerHTML=`<div class="wrap"><div class="no-print"><button class="sm" data-act="back">← Back to Report List</button>
+ <h1>Economic Dossier: ${esc(d.econ)} ${statusChip(d.status)}</h1><div class="hint">Mission: ${esc(MISSION)} · Phase: 2026 (Jan–June) · <span id="savestat" role="status" aria-live="polite">${esc(ui.saveTxt)}</span> · changes are saved automatically in this browser</div>
+ ${d.sample?`<div class="sample"><b>Sample data</b> – pre-filled for demonstration only. <button class="sm" data-act="clearsample">Clear this dossier</button></div>`:""}
+ ${d.status==="Action"?`<div class="alert e" role="alert"><b>Requires action:</b> ${esc(d.note)}</div>`:""}
+ <div style="margin:8px 0"><div style="display:flex;justify-content:space-between;font-size:13px"><span>Overall progress</span><b id="pct">${v.pct}%</b></div><div class="bar" role="progressbar" id="pbar" aria-label="Overall completion" aria-valuenow="${v.pct}" aria-valuemin="0" aria-valuemax="100"><i style="width:${v.pct}%"></i></div></div>
+ <div class="tabs" role="tablist" aria-label="Dossier sections">${tabs.map(t=>`<button role="tab" id="tabbtn-${t[0]}" data-tab="${t[0]}" aria-selected="${ui.tab===t[0]}" aria-controls="panel" tabindex="${ui.tab===t[0]?0:-1}">${t[0]===5?"👁 ":t[0]+". "}${t[1]}<small id="tp-${t[0]}">${t[0]<5?v.prog[t[0]].ok+" / "+v.prog[t[0]].t+" complete":"preview & submit"}</small></button>`).join("")}</div></div>
+ <div class="card panel" id="panel" role="tabpanel" aria-labelledby="tabbtn-${ui.tab}"><div id="panelbody"></div></div>
+ <div class="actions no-print"><button data-act="prevtab" ${ui.tab===1?"disabled":""}>← Previous</button><button class="pri" data-act="nexttab" ${ui.tab===5?"disabled":""}>Next →</button></div>
+ <datalist id="dl-country">${COUNTRIES.map(c=>`<option value="${esc(c)}">`).join("")}</datalist><datalist id="dl-asean">${ASEAN.map(c=>`<option value="${esc(c)}">`).join("")}</datalist><datalist id="dl-my">${MYCOS.map(c=>`<option value="${esc(c)}">`).join("")}</datalist></div>`;
+ renderPanel();}
+function renderPanel(focusId){const d=cur();const f=[null,tab1,tab2,tab3,tab4,tab5][ui.tab];
+ const pnl=document.getElementById("panel")||document.getElementById("panel-5");
+ document.getElementById("panelbody").innerHTML=f(d);pnl.id=ui.tab===5?"panel-5":"panel";pnl.setAttribute("aria-labelledby","tabbtn-"+ui.tab);
+ refresh();if(focusId){const e=document.getElementById(focusId);if(e)e.focus()}}
+
+/* ---------- refresh derived UI ---------- */
+function refresh(){const d=cur();if(!d||ui.view!=="form")return;const v=validate(d);ui.v=v;
+ document.querySelectorAll(".msg[id^=msg-]").forEach(el=>{const id=el.id.slice(4);const m=v.msgs[id];const ctl=document.getElementById(id);let show=null;
+  if(m){if(m.req){if(ui.touched.has(id)||ui.showAll)show=m}else if(m.t==="i"&&!m.text){}else show=m}
+  const inf=ui.info[id];if(!show&&inf)show={t:"i",text:inf};
+  el.className="msg"+(show?" "+show.t:"");el.textContent=show?(show.t==="e"?"⚠ ":show.t==="w"?"⚠ ":"")+show.text:"";
+  if(ctl&&(ctl.tagName==="INPUT"||ctl.tagName==="SELECT"||ctl.tagName==="TEXTAREA"))ctl.setAttribute("aria-invalid",show&&show.t==="e"?"true":"false")});
+ $("#pct")&&($("#pct").textContent=v.pct+"%");const pb=$("#pbar");if(pb){pb.setAttribute("aria-valuenow",v.pct);pb.firstElementChild.style.width=v.pct+"%"}
+ [1,2,3,4].forEach(t=>{const e=$("#tp-"+t);if(e)e.textContent=v.prog[t].ok+" / "+v.prog[t].t+" complete"});
+ SA.forEach(s=>{const c=$("#cnt-"+s[0]);if(c){const n=d.sa[s[0]].text.length;c.textContent=n+" / 1500 characters (soft limit)";c.className="cnt"+(n>1500?" over":"")}});
+ const cb=$("#completeBox");if(cb)cb.innerHTML=completeness(d,v);
+ const ad=$("#asean-derived");if(ad)ad.innerHTML=aseanBlock(d);
+ [["mp","macro"],["tp","trade"]].forEach(x=>{const p=d[x[1]].period;const a=$("#"+x[0]+"-asat");if(a)a.value=asAt(p);const l=$("#"+x[0]+"-lbl");if(l)l.innerHTML=p.kind&&p.year?"Selected: <b>"+esc(periodLabel(p))+"</b>":"Choose the period the figures refer to. There is no default."});
+ const u=$("#u-m-fx");
+ document.querySelectorAll(".row").forEach(r=>{const s=r.querySelector("select[id$=-k],input[id$=-k]");if(s&&s.id.startsWith("as-"))r.classList.toggle("my",s.value==="Malaysia")});
+ const dd=$("#doc");if(dd&&ui.tab===5)dd.outerHTML=previewDoc(d)}
+
+function logChange(d,label,from,to){const c=(from===""||from==null?"∅":String(from).slice(0,40))+" → "+(to===""?"∅":String(to).slice(0,40));const L=d.log,last=L[L.length-1],t=new Date().toISOString();
+ if(last&&last.f===label&&Date.now()-new Date(last.t).getTime()<30000){last.c=last.c.split(" → ")[0]+" → "+(to===""?"∅":String(to).slice(0,40));last.t=t}else{L.push({t,f:label,c});if(L.length>200)L.shift()}}
+
+/* ---------- events ---------- */
+function normCompany(v){const l=v.trim().toLowerCase();if(!l)return null;if(ALIAS[l])return ALIAS[l];const hit=MYCOS.find(c=>c.toLowerCase()===l||c.toLowerCase().replace(/\s*\(.*\)/,"")===l);return hit||null}
+document.addEventListener("input",e=>{const t=e.target,p=t.dataset&&t.dataset.path;if(!p||ui.view!=="form")return;
+ const d=cur();const v=t.type==="checkbox"?t.checked:t.value;const old=getP(d,p);setP(d,p,v);
+ if(t.dataset.label&&old!==v)logChange(d,t.dataset.label,t.type==="checkbox"?(old?"yes":"no"):old,t.type==="checkbox"?(v?"yes":"no"):v);
+ if(d.status==="Pending"&&false){}
+ if(t.dataset.rerender){queueSave();renderForm_keepTab(t.id);return}
+ queueSave();refresh()});
+document.addEventListener("change",e=>{const t=e.target;if(!t.dataset||!t.dataset.path||ui.view!=="form")return;const d=cur();
+ if(t.dataset.dupe){const rows=getP(d,t.dataset.dupe),i=+t.dataset.i,v=t.value.trim().toLowerCase();
+  if(v&&rows.some((r,j)=>j!==i&&String(r.k).toLowerCase()===v)){toast("“"+t.value+"” is already in this list – duplicates are not allowed.");t.value="";setP(d,t.dataset.path,"");queueSave();refresh();return}}
+ ui.touched.add(t.id);refresh()});
+document.addEventListener("focusout",e=>{const t=e.target;if(!t.dataset||!t.dataset.path||ui.view!=="form")return;const d=cur();ui.touched.add(t.id);
+ if(t.dataset.num&&t.type==="text"){const f=fixNum(t.value);if(f!==t.value){t.value=f;setP(d,t.dataset.path,f);toast("Comma converted: "+f);queueSave()}}
+ if(t.dataset.kind==="country"&&t.value){const c=COUNTRIES.find(x=>x.toLowerCase()===t.value.trim().toLowerCase());if(c&&c!==t.value){t.value=c;setP(d,t.dataset.path,c);queueSave()}}
+ if(t.dataset.kind==="mycompany"&&t.value){const n=normCompany(t.value);if(n){if(n!==t.value){t.value=n;setP(d,t.dataset.path,n);ui.info[t.id]="Normalised to “"+n+"” so the same company is counted together.";queueSave()}else delete ui.info[t.id]}else ui.info[t.id]="Not in the suggestion list – free text accepted. Please use the company's official name."}
+ refresh()});
+function renderForm_keepTab(fid){renderPanel(fid)}
+function go(tab,jump){ui.tab=tab;renderForm();if(jump){const e=document.getElementById(jump);if(e){e.scrollIntoView({block:"center"});e.focus();ui.touched.add(jump);refresh()}}}
+function download(name,type,text){const a=document.createElement("a");a.href=URL.createObjectURL(new Blob([text],{type}));a.download=name;document.body.appendChild(a);a.click();setTimeout(()=>{URL.revokeObjectURL(a.href);a.remove()},500)}
+function csvOf(d){const R=[["section","field","value","unit","basis","source","source_date"]];const m=d.macro;
+ R.push(["meta","economy",d.econ,"","","",""],["meta","report_type",d.reportType==="CG"?"Consulate-General":"Country-level","","","",""],["meta","figures_scope",d.scope,"","","",""],["macro","period",periodLabel(m.period),"","","",""],["macro","data_as_at",asAt(m.period),"","","",""]);
+ MF.forEach(x=>{const f=m.f[x.k];R.push(["macro",x.l,f.na?"NOT AVAILABLE":f.v,x.u,x.b?m.basis[x.b]:"",f.src,f.srcDate])});
+ R.push(["trade","period",periodLabel(d.trade.period),"","","",""]);
+ Object.keys(TL).forEach(k=>{const L=d.trade[k];L.rows.filter(r=>r.k||r.v).forEach((r,i)=>R.push(["trade_"+k,(i+1)+" "+r.k,r.v,"USD million","",L.src,L.srcDate]))});
+ const a=aseanInfo(d);R.push(["derived","malaysia_rank_asean",a.rank==null?"not listed":a.rank,"","","",""],["derived","asean_competitors_ahead",a.above.map(r=>r.c).join("; "),"","","",""]);
+ SA.forEach(s=>R.push(["strategic",s[1],d.sa[s[0]].text,"","","",""]));
+ KP.forEach(x=>d.kp[x[0]].rows.filter(r=>r.name).forEach(r=>R.push(["key_players_"+x[0],r.name,r.ind,"","","",""])));
+ return R.map(r=>r.map(c=>'"'+String(c==null?"":c).replace(/"/g,'""')+'"').join(",")).join("\r\n")}
+document.addEventListener("click",e=>{const t=e.target.closest("[data-area],[data-open],[data-act],[data-tab],[data-jump]");if(!t)return;
+ if(t.dataset.jump){e.preventDefault();ui.showAll=true;go(+t.dataset.tab,t.dataset.jump);return}
+ if(t.dataset.area){S.area=t.dataset.area;save();renderDash();return}
+ if(t.dataset.open){ui.cur=t.dataset.open;ui.view="form";ui.tab=1;ui.touched=new Set();ui.showAll=false;ui.info={};renderForm();window.scrollTo(0,0);return}
+ if(t.dataset.tab&&t.getAttribute("role")==="tab"){ui.tab=+t.dataset.tab;renderForm();$("#tabbtn-"+ui.tab).focus();return}
+ const a=t.dataset.act;if(!a)return;const d=ui.view==="form"?cur():null;
+ if(a==="back"){save();ui.view="dash";renderDash();window.scrollTo(0,0)}
+ else if(a==="reset"){if(confirm("Reset all sample data in this browser?")){localStorage.removeItem(KEY);S=demo();save();renderDash();toast("Demo data restored")}}
+ else if(a==="prevtab"){go(Math.max(1,ui.tab-1));window.scrollTo(0,0)}
+ else if(a==="nexttab"){go(Math.min(5,ui.tab+1));window.scrollTo(0,0)}
+ else if(a==="addrow"){const k=t.dataset.key;d.trade[k].rows.push({k:"",v:"",s:""});queueSave();renderPanel(`${k}-${d.trade[k].rows.length-1}-k`)}
+ else if(a==="addkp"){const k=t.dataset.key;d.kp[k].rows.push({name:"",ind:"",proj:"",val:""});queueSave();renderPanel(`kp-${k}-${d.kp[k].rows.length-1}-name`)}
+ else if(a==="addtag"){d.sa[t.dataset.key].tags.push({sector:"",type:"",urgency:"",agency:""});queueSave();renderPanel(`tg-${t.dataset.key}-${d.sa[t.dataset.key].tags.length-1}-sector`)}
+ else if(a==="rmrow"){const L=getP(d,t.dataset.list);const i=+t.dataset.i;logChange(d,"Removed row",t.dataset.list+" #"+(i+1),"");L.splice(i,1);
+  if(!L.length&&/rows$/.test(t.dataset.list)){L.push(t.dataset.list.startsWith("kp")?{name:"",ind:"",proj:"",val:""}:{k:"",v:"",s:""})}queueSave();renderPanel();toast("Row removed")}
+ else if(a==="clearsample"){if(confirm("Clear the sample data from this dossier and start blank?")){const n=blank(d.econ);n.status="Draft";S.dossiers[d.econ]=n;save();renderForm()}}
+ else if(a==="print"){window.print()}
+ else if(a==="json"){const x=aseanInfo(d);download("dossier-"+d.econ+".json","application/json",JSON.stringify({prototype:true,note:"Sample export. In the real system this structured data could be provided to JPDP.",mission:MISSION,dossier:d,derived:{malaysiaRankAsean:x.rank,asean_competitors_ahead:x.above.map(r=>r.c),macroDataAsAt:asAt(d.macro.period),tradeDataAsAt:asAt(d.trade.period)}},null,2));toast("JSON exported")}
+ else if(a==="csv"){download("dossier-"+d.econ+".csv","text/csv",csvOf(d));toast("CSV exported")}
+ else if(a==="withdraw"){d.status="Draft";logChange(d,"Status","Pending approval","Draft");save();renderForm()}
+ else if(a==="submit"){ui.showAll=true;const v=validate(d);refresh();if(v.miss.length||v.errs.length){toast("Cannot submit: "+(v.miss.length+v.errs.length)+" item(s) need attention");const c=$("#complete");if(c){c.scrollIntoView({block:"center"});}return}
+  if(confirm("Submit this dossier? (Prototype: only the status in this browser changes.)")){d.status="Pending";logChange(d,"Status","Draft","Pending approval");d.updated=new Date().toISOString();save();renderForm();toast("Submitted (prototype only)")}}});
+document.addEventListener("keydown",e=>{const t=e.target;if(t.getAttribute&&t.getAttribute("role")==="tab"&&(e.key==="ArrowRight"||e.key==="ArrowLeft")){const n=Math.min(5,Math.max(1,ui.tab+(e.key==="ArrowRight"?1:-1)));ui.tab=n;renderForm();$("#tabbtn-"+n).focus()}});
+
+/* ---------- boot ---------- */
+$("#app").innerHTML="";renderDash();
+window.__edms={S:()=>S,validate,cur};
+})();
+</script></body></html>
