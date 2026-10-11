@@ -30,7 +30,10 @@ const SAV={
   c=>`• Notify MIDA of investment openings in ${c}.\n• Raise market access issues at the next bilateral meeting.`,
   c=>`• Brief Bank Negara on currency developments in ${c}.\n• Monitor policy announcements monthly.`,
   c=>`• Arrange a trade mission to ${c} with the relevant chambers.\n• No immediate escalation required.`]};
-const saFor=(c,g,i,idx)=>{const o={};let k=0;for(const key in SAV){const L=SAV[key];o[key]="[Sample] "+L[(idx*(k+1)+k*3+Math.floor(idx/4))%L.length](c,g,i);k++}return o};
+const XA=["energy","logistics","agriculture","digital services","construction","tourism","mining","healthcare"],XB=["port capacity","power supply","skilled labour","bank lending","customs delays","public procurement","water and sanitation","rural roads","land titling"],XC=["a new investment law","a revised tax code","higher import tariffs","an updated labour act","a state enterprise review","new export incentives","a currency reform"];
+const saFor=(c,g,i,idx)=>{const o={};let k=0;for(const key in SAV){const L=SAV[key];o[key]="[Sample] "+L[(idx*(k+1)+k*3+Math.floor(idx/4))%L.length](c,g,i);
+ const a=XA[(idx+k)%8],b=XB[(idx*2+k)%9],d=XC[(idx*3+k)%7];
+ o[key]+=key==="assessment"||key==="implications"?` Officials stressed ${a} and ${b}, and noted ${d} as the main item to watch.`:`\n• Local contacts raised ${b} in ${a}, together with ${d}.`;k++}return o};
 const kpFor=(c,idx,asean)=>{const co=["National Energy Company","Grand Holdings","Central Trading Group","Prime Logistics","Metro Foods","Unity Telecom","Pioneer Steel"],mn=["Shell","Siemens","Samsung","Nestle","Toyota","Unilever","Huawei"],ass=["Chamber of Commerce and Industry","Federation of Manufacturers","Business Council"],ws=["Digital Economy Agency","Green Energy Authority","Investment Promotion Board"];
  const p=(a,i)=>a[(idx+i)%a.length];return{local:[{key:`${c} ${p(co,0)} (sample)`,industry:"Energy"},{key:`${c} ${p(co,2)} (sample)`,industry:"Trading"}],mnc:[{key:p(mn,0),industry:"Manufacturing"},{key:p(mn,3),industry:"Consumer goods"}],my:[{key:["PETRONAS","Maybank","Sime Darby","CIMB","Gamuda","Axiata"][idx%6],industry:"Energy, banking or plantation"}],watch:[{key:`${c} ${p(ws,0)}`,industry:"Digital governance"}],assoc:[{key:`${c} ${p(ass,0)}`,industry:"Cross-sector"}]}};
 function mkDoss(sp,idx){
@@ -114,10 +117,10 @@ const phaseEnd=(y,p)=>new Date(y,p===1?5:11,p===1?30:31,23,59);
 const isProjection=(y,p)=>phaseEnd(y,p)>new Date();
 /* ---- similarity ---- */
 const SHC={};
-function shingles(t){const w=String(t).toLowerCase().replace(/\[sample\]/g,"").replace(/[^a-z\s]/g," ").split(/\s+/).filter(Boolean);const s=new Set();for(let i=0;i+5<=w.length;i++)s.add(w.slice(i,i+5).join(" "));return s}
-function sh(d){const k=SA.map(s=>d.sa[s[0]]).join("\n");if(!SHC[k])SHC[k]=shingles(k);return SHC[k]}
+function shingles(t,c){let x=String(t);if(c)x=x.split(c).join(" ");const w=x.toLowerCase().replace(/\[sample\]/g,"").replace(/[^a-z\s]/g," ").split(/\s+/).filter(Boolean);const s=new Set();for(let i=0;i+5<=w.length;i++)s.add(w.slice(i,i+5).join(" "));return s}
+function sh(d){const k=d.econ+"|"+SA.map(s=>d.sa[s[0]]).join("\n");if(!SHC[k])SHC[k]=shingles(k.slice(d.econ.length+1),d.econ);return SHC[k]}
 function jac(a,b){if(!a.size||!b.size)return 0;let n=0;for(const x of a)if(b.has(x))n++;return n/(a.size+b.size-n)}
-function similarTo(w,all){const a=sh(w.d),out=[];if(a.size<8)return out;for(const o of all){if(o.key===w.key)continue;const j=jac(a,sh(o.d));if(j>=0.5)out.push({o,j})}return out.sort((x,y)=>y.j-x.j)}
+function similarTo(w,all){const a=sh(w.d),out=[];if(a.size<8)return out;for(const o of all){if(o.key===w.key)continue;const j=jac(a,sh(o.d));if(j>=0.7)out.push({o,j})}return out.sort((x,y)=>y.j-x.j)}
 /* ---- text vs table ---- */
 function textHints(d){const out=[];const txt=SA.map(s=>d.sa[s[0]]||"").join(" \n ");const sents=txt.split(/(?<=[.!?\n])\s+/);
  const nums=s=>[...s.matchAll(/(-?\d+(?:\.\d+)?)\s*(?:%|per ?cent|percent)/gi)].map(m=>parseFloat(m[1]));

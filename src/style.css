@@ -128,7 +128,7 @@ body{font-family:'Figtree',ui-sans-serif,system-ui,-apple-system,"Segoe UI",Robo
 .flag{display:flex;gap:.5rem;font-size:.8rem;line-height:1.35;padding:.45rem .5rem;border-radius:8px;margin-bottom:.35rem;background:#f8fafc;border-left:3px solid #94a3b8}
 .flag .fi{flex:none;width:1rem;text-align:center}.flag-e{border-left-color:#dc3545;background:#fef2f2}.flag-e .fi{color:#dc3545}.flag-w{border-left-color:#f59e0b;background:#fffbeb}.flag-w .fi{color:#d97706}.flag-i .fi{color:#2563eb}
 .sec-cm{margin-top:.75rem}.sec-cm textarea{font-size:.85rem}
-.chk-i.sug{background:#fffbeb;border-radius:6px;padding-left:.35rem;padding-right:.35rem}
+.chk-i.sug{background:#fffbeb;border-radius:6px;padding-top:.2rem;padding-bottom:.2rem;padding-right:.35rem}
 @media(min-width:992px){.side-sticky{position:sticky;top:1rem}}
 @media(max-width:991.98px){.worldgrid{grid-template-columns:repeat(2,1fr)}.rg-Americas{grid-row:auto}}
 @media(max-width:575.98px){.worldgrid{grid-template-columns:1fr}.login-card{padding:24px}}
